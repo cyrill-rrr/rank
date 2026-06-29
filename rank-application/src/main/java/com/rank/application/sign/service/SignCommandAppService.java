@@ -32,9 +32,7 @@ public class SignCommandAppService {
     private final SignRepository signRepository;
     private final SignFactory signFactory;
 
-    public SignCommandAppService(SignConfigRepository signConfigRepository,
-                                 SignRepository signRepository,
-                                 SignFactory signFactory) {
+    public SignCommandAppService(SignConfigRepository signConfigRepository, SignRepository signRepository, SignFactory signFactory) {
         this.signConfigRepository = signConfigRepository;
         this.signRepository = signRepository;
         this.signFactory = signFactory;
@@ -57,20 +55,17 @@ public class SignCommandAppService {
         config.checkProjectsSelectable(command.getProjectCodeList());
 
         // 2. 查询当前主体已有报名记录
-        List<SignEntity> allSubjectSigns = signRepository.queryBySceneSubject(
-                command.getSignScene(), command.getSubjectId());
+        List<SignEntity> allSubjectSigns = signRepository.queryBySceneSubject(command.getSignScene(), command.getSubjectId());
 
         // 3. 按projectCode建立映射，用于内存比对
-        Map<Integer, SignEntity> projectSignMap = allSubjectSigns.stream()
-                .collect(Collectors.toMap(SignEntity::getProjectCode, e -> e, (e1, e2) -> e1));
+        Map<Integer, SignEntity> projectSignMap = allSubjectSigns.stream().collect(Collectors.toMap(SignEntity::getProjectCode, e -> e, (e1, e2) -> e1));
 
         List<Long> affectedIds = new ArrayList<>();
         StringBuilder logBuilder = new StringBuilder();
 
         if (SignOperationEnum.SUBMIT.name().equals(command.getOperationType())) {
             // 4a. 提报分支：确定需要提报的项目code
-            List<Integer> toSignCodes = resolveToSignProjectCodes(
-                    projectSignMap, command.getProjectCodeList());
+            List<Integer> toSignCodes = resolveToSignProjectCodes(projectSignMap, command.getProjectCodeList());
 
             // 5a. 校验项目数不超过2
             checkProjectLimit(projectSignMap, toSignCodes);
@@ -79,8 +74,7 @@ public class SignCommandAppService {
             if (SignSceneEnum.DOCTOR.name().equals(command.getSignScene()) && !toSignCodes.isEmpty()) {
                 boolean isNewDoctor = isNewDoctorSign(allSubjectSigns);
                 if (isNewDoctor) {
-                    int signedDoctorCount = signRepository.countSignedDoctorsByIndexShopId(
-                            command.getSignScene(), command.getShopId());
+                    int signedDoctorCount = signRepository.countSignedDoctorsByIndexShopId(command.getSignScene(), command.getShopId());
                     checkDoctorLimit(signedDoctorCount);
                 }
             }
@@ -89,9 +83,7 @@ public class SignCommandAppService {
             for (Integer code : toSignCodes) {
                 SignEntity existing = projectSignMap.get(code);
                 if (existing == null) {
-                    SignEntity newEntity = signFactory.createSignedEntity(
-                            command.getSignScene(), command.getSubjectId(),
-                            command.getShopId(), code);
+                    SignEntity newEntity = signFactory.createSignedEntity(command.getSignScene(), command.getSubjectId(), command.getShopId(), code);
                     signRepository.saveOrUpdate(newEntity);
                     affectedIds.add(newEntity.getId());
                     logBuilder.append("新增=").append(code).append(";");
@@ -106,8 +98,7 @@ public class SignCommandAppService {
             }
         } else {
             // 4b. 退报分支：确定需要退报的项目code
-            List<Integer> toCancelCodes = resolveToCancelProjectCodes(
-                    projectSignMap, command.getProjectCodeList());
+            List<Integer> toCancelCodes = resolveToCancelProjectCodes(projectSignMap, command.getProjectCodeList());
 
             // 5b. 执行退报
             for (Integer code : toCancelCodes) {
@@ -130,8 +121,7 @@ public class SignCommandAppService {
     /**
      * 确定需要提报的项目code列表：入参项目中，不存在或已退报的才需要提报
      */
-    private static List<Integer> resolveToSignProjectCodes(Map<Integer, SignEntity> projectSignMap,
-                                                           List<Integer> requestedCodes) {
+    private static List<Integer> resolveToSignProjectCodes(Map<Integer, SignEntity> projectSignMap, List<Integer> requestedCodes) {
         List<Integer> result = new ArrayList<>();
         for (Integer code : requestedCodes) {
             SignEntity existing = projectSignMap.get(code);
@@ -145,8 +135,7 @@ public class SignCommandAppService {
     /**
      * 确定需要退报的项目code列表：入参项目中，已提报的才需要退报
      */
-    private static List<Integer> resolveToCancelProjectCodes(Map<Integer, SignEntity> projectSignMap,
-                                                              List<Integer> requestedCodes) {
+    private static List<Integer> resolveToCancelProjectCodes(Map<Integer, SignEntity> projectSignMap, List<Integer> requestedCodes) {
         List<Integer> result = new ArrayList<>();
         for (Integer code : requestedCodes) {
             SignEntity existing = projectSignMap.get(code);
@@ -161,9 +150,7 @@ public class SignCommandAppService {
      * 校验提报项目数不超过限制
      */
     private static void checkProjectLimit(Map<Integer, SignEntity> projectSignMap, List<Integer> toSignCodes) {
-        long alreadySignedCount = projectSignMap.values().stream()
-                .filter(e -> SignStatusEnum.SIGNED.equals(e.getStatus()))
-                .count();
+        long alreadySignedCount = projectSignMap.values().stream().filter(e -> SignStatusEnum.SIGNED.equals(e.getStatus())).count();
         long totalAfterSubmit = alreadySignedCount + toSignCodes.size();
         if (totalAfterSubmit > MAX_PROJECTS_PER_SUBJECT) {
             throw BizException.invalidParam("每个报名主体最多提报" + MAX_PROJECTS_PER_SUBJECT + "个项目");

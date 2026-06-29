@@ -12,6 +12,10 @@ import com.rank.api.sign.dto.QuerySignPageRequestDTO;
 import com.rank.api.sign.dto.QuerySignPageResponseDTO;
 import com.rank.api.sign.facade.SignFacade;
 import com.rank.application.sign.assembler.SignAssembler;
+import com.rank.application.sign.command.OperateSignCommand;
+import com.rank.application.sign.qry.SelectableProjectQry;
+import com.rank.application.sign.qry.ShopDoctorQry;
+import com.rank.application.sign.qry.SignPageQry;
 import com.rank.application.sign.service.SignCommandAppService;
 import com.rank.application.sign.service.SignQueryAppService;
 import com.rank.domain.common.PageResult;
@@ -50,7 +54,7 @@ public class SignFacadeImpl implements SignFacade {
             validateOperateSign(request);
 
             // 2. DTO转Command
-            com.rank.application.sign.command.OperateSignCommand command = signAssembler.toCommand(request);
+            OperateSignCommand command = signAssembler.toCommand(request);
 
             // 3. 执行报名操作
             List<Long> signIdList = signCommandAppService.operateSign(command);
@@ -80,7 +84,7 @@ public class SignFacadeImpl implements SignFacade {
             validateQuerySignPage(request);
 
             // 2. DTO转Qry
-            com.rank.application.sign.qry.SignPageQry qry = signAssembler.toQry(request);
+            SignPageQry qry = signAssembler.toQry(request);
 
             // 3. 查询
             PageResult<SignEntity> pageResult = signQueryAppService.querySignPage(qry);
@@ -113,7 +117,7 @@ public class SignFacadeImpl implements SignFacade {
             validateQuerySelectableProjects(request);
 
             // 2. DTO转Qry
-            com.rank.application.sign.qry.SelectableProjectQry qry = signAssembler.toQry(request);
+            SelectableProjectQry qry = signAssembler.toQry(request);
 
             // 3. 查询
             List<SignProjectVO> projectList = signQueryAppService.querySelectableProjects(qry);
@@ -143,7 +147,7 @@ public class SignFacadeImpl implements SignFacade {
             validateQueryShopDoctors(request);
 
             // 2. DTO转Qry
-            com.rank.application.sign.qry.ShopDoctorQry qry = signAssembler.toQry(request);
+            ShopDoctorQry qry = signAssembler.toQry(request);
 
             // 3. 查询并转换（Assembler负责DoctorAcl.DoctorDTO到API DoctorDTO的映射）
             List<DoctorDTO> apiDoctors = signQueryAppService.queryShopDoctors(qry, signAssembler);
