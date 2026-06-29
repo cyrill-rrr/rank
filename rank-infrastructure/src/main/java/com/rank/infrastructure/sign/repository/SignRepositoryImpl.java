@@ -64,7 +64,8 @@ public class SignRepositoryImpl implements SignRepository {
             SignPO po = signConverter.toPO(signEntity);
             if (po == null) {
                 // Entity到PO转换失败，可能是Entity字段异常或Converter未正确处理
-                log.info("[SignRepositoryImpl saveOrUpdate] 转换PO为空, signEntity={}", signEntity);
+                log.info("[SignRepositoryImpl saveOrUpdate] 转换PO为空, signScene={}, subjectId={}, projectCode={}, status={}",
+                        signEntity.getSignScene(), signEntity.getSubjectId(), signEntity.getProjectCode(), signEntity.getStatus());
                 return;
             }
             if (po.getId() == null) {
@@ -79,7 +80,8 @@ public class SignRepositoryImpl implements SignRepository {
                 signEntity.setUpdatedTime(po.getUpdatedTime());
             }
         } catch (Exception e) {
-            log.error("[SignRepositoryImpl saveOrUpdate] 保存报名记录异常, signEntity={}", signEntity, e);
+            log.error("[SignRepositoryImpl saveOrUpdate] 保存报名记录异常, signScene={}, subjectId={}, projectCode={}, status={}",
+                    signEntity.getSignScene(), signEntity.getSubjectId(), signEntity.getProjectCode(), signEntity.getStatus(), e);
             throw e;
         }
     }
