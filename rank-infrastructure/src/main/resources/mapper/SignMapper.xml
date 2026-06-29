@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rank.infrastructure.sign.mapper.SignMapper">
+
+    <resultMap id="BaseResultMap" type="com.rank.infrastructure.sign.po.SignPO">
+        <id column="id" property="id"/>
+        <result column="sign_scene" property="signScene"/>
+        <result column="subject_id" property="subjectId"/>
+        <result column="index_shop_id" property="indexShopId"/>
+        <result column="project_code" property="projectCode"/>
+        <result column="status" property="status"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, sign_scene, subject_id, index_shop_id, project_code, status, created_time, updated_time
+    </sql>
+
+    <select id="queryBySceneSubject" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM t_sign
+        WHERE sign_scene = #{signScene} AND subject_id = #{subjectId}
+    </select>
+
+    <select id="countSignedDoctorsByIndexShopId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT subject_id)
+        FROM t_sign
+        WHERE sign_scene = #{signScene} AND index_shop_id = #{indexShopId} AND status = 'SIGNED'
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_sign (sign_scene, subject_id, index_shop_id, project_code, status, created_time, updated_time)
+        VALUES (#{signScene}, #{subjectId}, #{indexShopId}, #{projectCode}, #{status}, #{createdTime}, #{updatedTime})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE t_sign
+        SET status = #{status}, updated_time = #{updatedTime}
+        WHERE id = #{id}
+    </update>
+
+    <select id="queryShopSignPage" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM t_sign
+        WHERE sign_scene = #{signScene} AND index_shop_id = #{indexShopId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY updated_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countShopSignPage" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_sign
+        WHERE sign_scene = #{signScene} AND index_shop_id = #{indexShopId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+</mapper>
