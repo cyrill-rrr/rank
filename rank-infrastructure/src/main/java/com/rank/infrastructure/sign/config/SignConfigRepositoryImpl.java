@@ -35,23 +35,23 @@ public class SignConfigRepositoryImpl implements SignConfigRepository {
 
             List<SignProjectVO> projectList;
             if (SignSceneEnum.INSTITUTION.name().equals(signScene)) {
-                // 机构榜可选项目：101, 102, 103
                 projectList = Arrays.asList(
                         new SignProjectVO(101, 1),
                         new SignProjectVO(102, 1),
                         new SignProjectVO(103, 1));
             } else if (SignSceneEnum.DOCTOR.name().equals(signScene)) {
-                // 医生榜可选项目：101, 102
                 projectList = Arrays.asList(
                         new SignProjectVO(101, 2),
                         new SignProjectVO(102, 2));
             } else {
-                // 未知场景属于配置异常，打印ERROR日志便于排查Lion配置问题
-                log.info("[SignConfigRepositoryImpl findByScene] 未知报名场景, signScene={}", signScene);
+                log.error("[SignConfigRepositoryImpl findByScene] 未知报名场景, signScene={}", signScene);
                 return null;
             }
 
-            return new SignConfigVO(window, projectList);
+            SignConfigVO config = new SignConfigVO(window, projectList);
+            log.info("[SignConfigRepositoryImpl findByScene] 读取配置完成, signScene={}, projectCount={}",
+                    signScene, projectList.size());
+            return config;
         } catch (ParseException e) {
             log.error("[SignConfigRepositoryImpl findByScene] 配置日期解析异常", e);
             return null;

@@ -31,6 +31,8 @@ public class DoctorAclImpl implements DoctorAcl {
             doctors.removeIf(d -> d.getOnlineStatus() == null || d.getOnlineStatus() == 0);
         }
 
+        log.info("[DoctorAclImpl queryDoctorsByShopId] 查询结果, shopId={}, doctorCount={}",
+                shopId, doctors.size());
         return doctors;
     }
 }

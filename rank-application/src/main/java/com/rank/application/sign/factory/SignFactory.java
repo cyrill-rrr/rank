@@ -1,11 +1,13 @@
-package com.rank.domain.sign.factory;
+package com.rank.application.sign.factory;
 
 import com.rank.domain.sign.model.SignEntity;
 import com.rank.domain.sign.shared.SignStatusEnum;
+import org.springframework.stereotype.Component;
 
 /**
  * 报名工厂：用于创建报名实体
  */
+@Component
 public class SignFactory {
 
     /**

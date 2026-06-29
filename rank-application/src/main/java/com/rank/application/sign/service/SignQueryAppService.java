@@ -6,6 +6,7 @@ import com.rank.application.sign.qry.SelectableProjectQry;
 import com.rank.application.sign.qry.ShopDoctorQry;
 import com.rank.application.sign.qry.SignPageQry;
 import com.rank.domain.common.PageResult;
+import com.rank.domain.common.exception.BizException;
 import com.rank.domain.sign.model.SignEntity;
 import com.rank.domain.sign.repository.DoctorAcl;
 import com.rank.domain.sign.repository.SignConfigRepository;
@@ -59,7 +60,7 @@ public class SignQueryAppService {
         log.info("[SignQueryAppService querySelectableProjects] 查询可选提报项目, signScene={}", qry.getSignScene());
         SignConfigVO config = signConfigRepository.findByScene(qry.getSignScene());
         if (config == null || config.getProjectList() == null) {
-            throw new IllegalArgumentException("报名配置暂不可用");
+            throw BizException.illegalState("报名配置暂不可用");
         }
         return config.getProjectList();
     }

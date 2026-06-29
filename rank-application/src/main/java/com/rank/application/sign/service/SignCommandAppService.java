@@ -1,12 +1,13 @@
 package com.rank.application.sign.service;
 
 import com.rank.application.sign.command.OperateSignCommand;
-import com.rank.domain.sign.factory.SignFactory;
+import com.rank.application.sign.factory.SignFactory;
+import com.rank.domain.common.exception.BizException;
 import com.rank.domain.sign.model.SignEntity;
 import com.rank.domain.sign.repository.SignConfigRepository;
 import com.rank.domain.sign.repository.SignRepository;
-import com.rank.domain.sign.service.SignDomainService;
 import com.rank.domain.sign.shared.SignOperationEnum;
+import com.rank.domain.sign.shared.SignSceneEnum;
 import com.rank.domain.sign.shared.SignStatusEnum;
 import com.rank.domain.sign.vo.SignConfigVO;
 import lombok.extern.slf4j.Slf4j;
@@ -24,19 +25,19 @@ import java.util.stream.Collectors;
 @Service
 public class SignCommandAppService {
 
+    private static final int MAX_PROJECTS_PER_SUBJECT = 2;
+    private static final int MAX_DOCTORS_PER_SHOP = 10;
+
     private final SignConfigRepository signConfigRepository;
     private final SignRepository signRepository;
     private final SignFactory signFactory;
-    private final SignDomainService signDomainService;
 
     public SignCommandAppService(SignConfigRepository signConfigRepository,
                                  SignRepository signRepository,
-                                 SignFactory signFactory,
-                                 SignDomainService signDomainService) {
+                                 SignFactory signFactory) {
         this.signConfigRepository = signConfigRepository;
         this.signRepository = signRepository;
         this.signFactory = signFactory;
-        this.signDomainService = signDomainService;
     }
 
     /**
@@ -50,7 +51,7 @@ public class SignCommandAppService {
         log.info("[SignCommandAppService operateSign] 读取报名配置, signScene={}", command.getSignScene());
         SignConfigVO config = signConfigRepository.findByScene(command.getSignScene());
         if (config == null) {
-            throw new IllegalArgumentException("报名配置缺失，signScene=" + command.getSignScene());
+            throw BizException.notFound("报名配置缺失，signScene=" + command.getSignScene());
         }
         config.checkCanOperate(command.getOperationType());
         config.checkProjectsSelectable(command.getProjectCodeList());
@@ -68,19 +69,19 @@ public class SignCommandAppService {
 
         if (SignOperationEnum.SUBMIT.name().equals(command.getOperationType())) {
             // 4a. 提报分支：确定需要提报的项目code
-            List<Integer> toSignCodes = signDomainService.resolveToSignProjectCodes(
+            List<Integer> toSignCodes = resolveToSignProjectCodes(
                     projectSignMap, command.getProjectCodeList());
 
             // 5a. 校验项目数不超过2
-            signDomainService.checkProjectLimit(projectSignMap, toSignCodes);
+            checkProjectLimit(projectSignMap, toSignCodes);
 
             // 6a. 医生榜校验医生数（仅当有新增报名时）
-            if (signDomainService.isDoctorScene(command.getSignScene()) && !toSignCodes.isEmpty()) {
-                boolean isNewDoctor = signDomainService.isNewDoctorSign(allSubjectSigns);
+            if (SignSceneEnum.DOCTOR.name().equals(command.getSignScene()) && !toSignCodes.isEmpty()) {
+                boolean isNewDoctor = isNewDoctorSign(allSubjectSigns);
                 if (isNewDoctor) {
                     int signedDoctorCount = signRepository.countSignedDoctorsByIndexShopId(
                             command.getSignScene(), command.getShopId());
-                    signDomainService.checkDoctorLimit(signedDoctorCount);
+                    checkDoctorLimit(signedDoctorCount);
                 }
             }
 
@@ -105,7 +106,7 @@ public class SignCommandAppService {
             }
         } else {
             // 4b. 退报分支：确定需要退报的项目code
-            List<Integer> toCancelCodes = signDomainService.resolveToCancelProjectCodes(
+            List<Integer> toCancelCodes = resolveToCancelProjectCodes(
                     projectSignMap, command.getProjectCodeList());
 
             // 5b. 执行退报
@@ -124,5 +125,72 @@ public class SignCommandAppService {
 
         log.info("[SignCommandAppService operateSign] 批量操作结果: {}", logBuilder.toString());
         return affectedIds;
+    }
+
+    /**
+     * 确定需要提报的项目code列表：入参项目中，不存在或已退报的才需要提报
+     */
+    private static List<Integer> resolveToSignProjectCodes(Map<Integer, SignEntity> projectSignMap,
+                                                           List<Integer> requestedCodes) {
+        List<Integer> result = new ArrayList<>();
+        for (Integer code : requestedCodes) {
+            SignEntity existing = projectSignMap.get(code);
+            if (existing == null || SignStatusEnum.CANCELLED.equals(existing.getStatus())) {
+                result.add(code);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 确定需要退报的项目code列表：入参项目中，已提报的才需要退报
+     */
+    private static List<Integer> resolveToCancelProjectCodes(Map<Integer, SignEntity> projectSignMap,
+                                                              List<Integer> requestedCodes) {
+        List<Integer> result = new ArrayList<>();
+        for (Integer code : requestedCodes) {
+            SignEntity existing = projectSignMap.get(code);
+            if (existing != null && SignStatusEnum.SIGNED.equals(existing.getStatus())) {
+                result.add(code);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 校验提报项目数不超过限制
+     */
+    private static void checkProjectLimit(Map<Integer, SignEntity> projectSignMap, List<Integer> toSignCodes) {
+        long alreadySignedCount = projectSignMap.values().stream()
+                .filter(e -> SignStatusEnum.SIGNED.equals(e.getStatus()))
+                .count();
+        long totalAfterSubmit = alreadySignedCount + toSignCodes.size();
+        if (totalAfterSubmit > MAX_PROJECTS_PER_SUBJECT) {
+            throw BizException.invalidParam("每个报名主体最多提报" + MAX_PROJECTS_PER_SUBJECT + "个项目");
+        }
+    }
+
+    /**
+     * 校验医生数不超过限制
+     */
+    private static void checkDoctorLimit(int signedDoctorCount) {
+        if (signedDoctorCount >= MAX_DOCTORS_PER_SHOP) {
+            throw BizException.invalidParam("该机构最多报名" + MAX_DOCTORS_PER_SHOP + "个医生");
+        }
+    }
+
+    /**
+     * 判断是否是新增医生报名：当前主体下没有任何报名记录，或全部为退报状态
+     */
+    private static boolean isNewDoctorSign(List<SignEntity> allSubjectSigns) {
+        if (allSubjectSigns == null || allSubjectSigns.isEmpty()) {
+            return true;
+        }
+        for (SignEntity sign : allSubjectSigns) {
+            if (SignStatusEnum.SIGNED.equals(sign.getStatus())) {
+                return false;
+            }
+        }
+        return true;
     }
 }
