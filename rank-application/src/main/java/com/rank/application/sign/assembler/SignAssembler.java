@@ -16,9 +16,12 @@ import com.rank.application.sign.qry.SelectableProjectQry;
 import com.rank.application.sign.qry.ShopDoctorQry;
 import com.rank.application.sign.qry.SignPageQry;
 import com.rank.domain.sign.model.SignEntity;
+import com.rank.domain.sign.repository.DoctorAcl;
 import com.rank.domain.sign.shared.SignSceneEnum;
+import com.rank.domain.sign.shared.SignStatusEnum;
 import com.rank.domain.sign.vo.SignProjectVO;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +77,7 @@ public class SignAssembler {
         dto.setTotal(total);     // 总条数
         dto.setPageNo(pageNo);   // 当前页
         dto.setPageSize(pageSize);  // 每页大小
-        if (records != null && !records.isEmpty()) {
+        if (!CollectionUtils.isEmpty(records)) {
             List<SignRecordDTO> recordDTOs = records.stream()
                     .map(this::toSignRecordDTO)
                     .collect(Collectors.toList());
@@ -112,7 +115,7 @@ public class SignAssembler {
      */
     public QuerySelectableProjectsResponseDTO toSelectableProjectResponse(List<SignProjectVO> projectList) {
         QuerySelectableProjectsResponseDTO dto = new QuerySelectableProjectsResponseDTO();
-        if (projectList != null && !projectList.isEmpty()) {
+        if (!CollectionUtils.isEmpty(projectList)) {
             List<ProjectDTO> projectDTOs = projectList.stream()
                     .map(p -> {
                         ProjectDTO pd = new ProjectDTO();
@@ -147,10 +150,32 @@ public class SignAssembler {
     }
 
     /**
+     * 将领域层DoctorAcl的DoctorDTO列表转为API层DoctorDTO列表
+     *
+     * @param aclDoctors DoctorAcl返回的医生DTO列表
+     * @return API层医生DTO列表
+     */
+    public List<DoctorDTO> toApiDoctorDTOList(List<DoctorAcl.DoctorDTO> aclDoctors) {
+        if (CollectionUtils.isEmpty(aclDoctors)) {
+            return Collections.emptyList();
+        }
+        return aclDoctors.stream()
+                .map(d -> {
+                    DoctorDTO apiDto = new DoctorDTO();
+                    apiDto.setTechId(d.getTechId());           // 医生ID
+                    apiDto.setDoctorName(d.getDoctorName());   // 医生名称
+                    apiDto.setOnlineStatus(d.getOnlineStatus()); // 在线状态
+                    apiDto.setShopId(d.getShopId());           // 所属机构ID
+                    return apiDto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 状态String转Integer
      */
-    private int convertStatusToInt(String status) {
-        if ("SIGNED".equals(status)) {
+    private static int convertStatusToInt(String status) {
+        if (SignStatusEnum.SIGNED.name().equals(status)) {
             return 1;
         }
         return 2;

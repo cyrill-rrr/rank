@@ -1,6 +1,7 @@
 package com.rank.infrastructure.sign.config;
 
 import com.rank.domain.sign.repository.SignConfigRepository;
+import com.rank.domain.sign.shared.SignSceneEnum;
 import com.rank.domain.sign.vo.SignConfigVO;
 import com.rank.domain.sign.vo.SignProjectVO;
 import com.rank.domain.sign.vo.SignWindowVO;
@@ -33,19 +34,20 @@ public class SignConfigRepositoryImpl implements SignConfigRepository {
                     DATE_FORMAT.parse("2026-12-31 23:59:59"));
 
             List<SignProjectVO> projectList;
-            if ("INSTITUTION".equals(signScene)) {
+            if (SignSceneEnum.INSTITUTION.name().equals(signScene)) {
                 // 机构榜可选项目：101, 102, 103
                 projectList = Arrays.asList(
                         new SignProjectVO(101, 1),
                         new SignProjectVO(102, 1),
                         new SignProjectVO(103, 1));
-            } else if ("DOCTOR".equals(signScene)) {
+            } else if (SignSceneEnum.DOCTOR.name().equals(signScene)) {
                 // 医生榜可选项目：101, 102
                 projectList = Arrays.asList(
                         new SignProjectVO(101, 2),
                         new SignProjectVO(102, 2));
             } else {
-                log.warn("[SignConfigRepositoryImpl findByScene] 未知报名场景, signScene={}", signScene);
+                // 未知场景属于配置异常，打印ERROR日志便于排查Lion配置问题
+                log.info("[SignConfigRepositoryImpl findByScene] 未知报名场景, signScene={}", signScene);
                 return null;
             }
 

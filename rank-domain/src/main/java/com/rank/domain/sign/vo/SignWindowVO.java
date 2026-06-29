@@ -30,6 +30,10 @@ public class SignWindowVO {
      * 校验当前时间是否在窗口期内
      */
     public void checkCanOperate() {
+        // 防止Lion配置缺失startTime或endTime时产生NPE
+        if (startTime == null || endTime == null) {
+            throw BizException.illegalState("报名窗口期配置不完整");
+        }
         Date now = new Date();
         if (now.before(startTime) || now.after(endTime)) {
             throw BizException.invalidParam("当前不在报名窗口期内，不能提报或退报");

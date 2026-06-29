@@ -1,10 +1,13 @@
 package com.rank.api.common;
 
+import lombok.Data;
+
 /**
  * 统一响应体
  *
  * @param <T> data 泛型类型
  */
+@Data
 public class Response<T> {
 
     private int code;
@@ -33,37 +36,5 @@ public class Response<T> {
      */
     public static <T> Response<T> fail(int code, String msg) {
         return new Response<>(code, msg, null);
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
-
-    public String getTraceId() {
-        return traceId;
-    }
-
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
     }
 }

@@ -15,14 +15,13 @@ import com.rank.application.sign.assembler.SignAssembler;
 import com.rank.application.sign.service.SignCommandAppService;
 import com.rank.application.sign.service.SignQueryAppService;
 import com.rank.domain.common.PageResult;
+import com.rank.domain.common.exception.BizException;
 import com.rank.domain.sign.model.SignEntity;
-import com.rank.domain.sign.repository.DoctorAcl;
 import com.rank.domain.sign.vo.SignProjectVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 司南榜报名Facade实现
@@ -60,7 +59,10 @@ public class SignFacadeImpl implements SignFacade {
             OperateSignResponseDTO response = signAssembler.toOperateSignResponse(signIdList);
             return Response.success(response);
         } catch (IllegalArgumentException e) {
-            log.error("[SignFacadeImpl operateSign] 参数校验失败, msg={}", e.getMessage(), e);
+            log.error("[SignFacadeImpl operateSign] 参数校验失败, request={}", request, e);
+            return Response.fail(400001, e.getMessage());
+        } catch (BizException e) {
+            log.error("[SignFacadeImpl operateSign] 业务异常, request={}", request, e);
             return Response.fail(400001, e.getMessage());
         } catch (Exception e) {
             log.error("[SignFacadeImpl operateSign] 报名操作异常, request={}", request, e);
@@ -89,7 +91,10 @@ public class SignFacadeImpl implements SignFacade {
                     pageResult.getPageSize(), pageResult.getRecords());
             return Response.success(response);
         } catch (IllegalArgumentException e) {
-            log.error("[SignFacadeImpl querySignPage] 参数校验失败, msg={}", e.getMessage(), e);
+            log.error("[SignFacadeImpl querySignPage] 参数校验失败, request={}", request, e);
+            return Response.fail(400002, e.getMessage());
+        } catch (BizException e) {
+            log.error("[SignFacadeImpl querySignPage] 业务异常, request={}", request, e);
             return Response.fail(400002, e.getMessage());
         } catch (Exception e) {
             log.error("[SignFacadeImpl querySignPage] 查询报名记录异常, request={}", request, e);
@@ -117,7 +122,10 @@ public class SignFacadeImpl implements SignFacade {
             QuerySelectableProjectsResponseDTO response = signAssembler.toSelectableProjectResponse(projectList);
             return Response.success(response);
         } catch (IllegalArgumentException e) {
-            log.error("[SignFacadeImpl querySelectableProjects] 参数校验失败, msg={}", e.getMessage(), e);
+            log.error("[SignFacadeImpl querySelectableProjects] 参数校验失败, request={}", request, e);
+            return Response.fail(400003, e.getMessage());
+        } catch (BizException e) {
+            log.error("[SignFacadeImpl querySelectableProjects] 业务异常, request={}", request, e);
             return Response.fail(400003, e.getMessage());
         } catch (Exception e) {
             log.error("[SignFacadeImpl querySelectableProjects] 查询可选提报项目异常, request={}", request, e);
@@ -137,25 +145,16 @@ public class SignFacadeImpl implements SignFacade {
             // 2. DTO转Qry
             com.rank.application.sign.qry.ShopDoctorQry qry = signAssembler.toQry(request);
 
-            // 3. 查询
-            List<DoctorAcl.DoctorDTO> doctorDTOs = signQueryAppService.queryShopDoctors(qry);
-
-            // 4. 转换为API层的DoctorDTO
-            List<DoctorDTO> apiDoctors = doctorDTOs.stream()
-                    .map(d -> {
-                        DoctorDTO apiDto = new DoctorDTO();
-                        apiDto.setTechId(d.getTechId());
-                        apiDto.setDoctorName(d.getDoctorName());
-                        apiDto.setOnlineStatus(d.getOnlineStatus());
-                        apiDto.setShopId(d.getShopId());
-                        return apiDto;
-                    })
-                    .collect(Collectors.toList());
+            // 3. 查询并转换（Assembler负责DoctorAcl.DoctorDTO到API DoctorDTO的映射）
+            List<DoctorDTO> apiDoctors = signQueryAppService.queryShopDoctors(qry, signAssembler);
 
             QueryShopDoctorsResponseDTO response = signAssembler.toShopDoctorResponse(apiDoctors);
             return Response.success(response);
         } catch (IllegalArgumentException e) {
-            log.error("[SignFacadeImpl queryShopDoctors] 参数校验失败, msg={}", e.getMessage(), e);
+            log.error("[SignFacadeImpl queryShopDoctors] 参数校验失败, request={}", request, e);
+            return Response.fail(400004, e.getMessage());
+        } catch (BizException e) {
+            log.error("[SignFacadeImpl queryShopDoctors] 业务异常, request={}", request, e);
             return Response.fail(400004, e.getMessage());
         } catch (Exception e) {
             log.error("[SignFacadeImpl queryShopDoctors] 查询机构医生列表异常, request={}", request, e);

@@ -1,5 +1,7 @@
 package com.rank.domain.common;
 
+import lombok.Data;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import java.util.List;
  *
  * @param <T> 分页记录类型
  */
+@Data
 public class PageResult<T> {
 
     private long total;
@@ -22,38 +25,6 @@ public class PageResult<T> {
         this.total = total;
         this.pageNo = pageNo;
         this.pageSize = pageSize;
-        this.records = records;
-    }
-
-    public long getTotal() {
-        return total;
-    }
-
-    public void setTotal(long total) {
-        this.total = total;
-    }
-
-    public int getPageNo() {
-        return pageNo;
-    }
-
-    public void setPageNo(int pageNo) {
-        this.pageNo = pageNo;
-    }
-
-    public int getPageSize() {
-        return pageSize;
-    }
-
-    public void setPageSize(int pageSize) {
-        this.pageSize = pageSize;
-    }
-
-    public List<T> getRecords() {
-        return records;
-    }
-
-    public void setRecords(List<T> records) {
         this.records = records;
     }
 

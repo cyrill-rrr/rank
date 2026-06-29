@@ -1,6 +1,7 @@
 package com.rank.domain.sign.model;
 
 import com.rank.domain.sign.shared.SignStatusEnum;
+import lombok.Getter;
 
 import java.util.Date;
 
@@ -10,6 +11,7 @@ import java.util.Date;
  * 1. 一个报名记录只对应一个场景、一个主体、一个提报项目。
  * 2. 提报和退报进入Entity状态流转前，必须先通过SignConfigVO的窗口期校验。
  */
+@Getter
 public class SignEntity {
 
     private Long id;
@@ -33,38 +35,6 @@ public class SignEntity {
         this.status = status;
         this.createdTime = new Date();
         this.updatedTime = new Date();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getSignScene() {
-        return signScene;
-    }
-
-    public Long getSubjectId() {
-        return subjectId;
-    }
-
-    public Long getIndexShopId() {
-        return indexShopId;
-    }
-
-    public Integer getProjectCode() {
-        return projectCode;
-    }
-
-    public SignStatusEnum getStatus() {
-        return status;
-    }
-
-    public Date getCreatedTime() {
-        return createdTime;
-    }
-
-    public Date getUpdatedTime() {
-        return updatedTime;
     }
 
     public void setId(Long id) {

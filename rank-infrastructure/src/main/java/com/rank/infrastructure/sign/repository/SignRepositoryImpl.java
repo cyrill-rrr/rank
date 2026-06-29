@@ -8,6 +8,7 @@ import com.rank.infrastructure.sign.mapper.SignMapper;
 import com.rank.infrastructure.sign.po.SignPO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +33,7 @@ public class SignRepositoryImpl implements SignRepository {
     public List<SignEntity> queryBySceneSubject(String signScene, Long subjectId) {
         try {
             List<SignPO> poList = signMapper.queryBySceneSubject(signScene, subjectId);
-            if (poList == null || poList.isEmpty()) {
+            if (CollectionUtils.isEmpty(poList)) {
                 return Collections.emptyList();
             }
             return poList.stream()
@@ -62,18 +63,18 @@ public class SignRepositoryImpl implements SignRepository {
         try {
             SignPO po = signConverter.toPO(signEntity);
             if (po == null) {
-                log.error("[SignRepositoryImpl saveOrUpdate] 转换PO为空, signEntity={}", signEntity);
+                // Entity到PO转换失败，可能是Entity字段异常或Converter未正确处理
+                log.info("[SignRepositoryImpl saveOrUpdate] 转换PO为空, signEntity={}", signEntity);
                 return;
             }
             if (po.getId() == null) {
-                // 新增
+                // 主键为空时走新增路径，新记录需回填自增主键以支持后续状态更新
                 signMapper.insert(po);
-                // 回写ID
                 signEntity.setId(po.getId());
                 signEntity.setCreatedTime(po.getCreatedTime());
                 signEntity.setUpdatedTime(po.getUpdatedTime());
             } else {
-                // 更新
+                // 已有主键时走更新路径，只更新状态和时间戳
                 signMapper.updateStatus(po);
                 signEntity.setUpdatedTime(po.getUpdatedTime());
             }
@@ -87,18 +88,18 @@ public class SignRepositoryImpl implements SignRepository {
     public PageResult<SignEntity> queryShopSignPage(String signScene, Long indexShopId, String status,
                                                     int pageNo, int pageSize) {
         try {
-            // 查询总数
+            // 先查总条数，为0则直接返回空分页避免执行二次查询
             Long total = signMapper.countShopSignPage(signScene, indexShopId, status);
             if (total == null || total == 0) {
                 return PageResult.empty(pageNo, pageSize);
             }
 
-            // 分页查询
+            // 非空时才查具体分页数据
             int offset = (pageNo - 1) * pageSize;
             List<SignPO> poList = signMapper.queryShopSignPage(signScene, indexShopId, status, offset, pageSize);
-            List<SignEntity> records = poList != null
-                    ? poList.stream().map(signConverter::toEntity).collect(Collectors.toList())
-                    : Collections.emptyList();
+            List<SignEntity> records = CollectionUtils.isEmpty(poList)
+                    ? Collections.emptyList()
+                    : poList.stream().map(signConverter::toEntity).collect(Collectors.toList());
 
             return new PageResult<>(total, pageNo, pageSize, records);
         } catch (Exception e) {
