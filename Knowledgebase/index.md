@@ -26,7 +26,7 @@ source_refs: []
 | 有效报名, 报名状态, 报名取消, 报名过期 | [domains/sign/README.md](domains/sign/README.md) | 用于判断商家是否存在有效报名。 |
 | 提报, 退报, SUBMIT, CANCEL, 机构榜, 医生榜 | [domains/sign/README.md](domains/sign/README.md) | 查报名操作类型、报名场景、主体口径和数量限制。 |
 | 报名窗口期, 可选提报项目, 项目code, 报名配置 | [domains/sign/README.md](domains/sign/README.md) | 查报名配置、窗口期校验和可选项目规则。 |
-| 司南榜, 司南榜报名, 报名需求, 报名业务规则, 报名验收标准 | [spec-prds/司南榜报名需求Spec.md](spec-prds/司南榜报名需求Spec.md) | 查司南榜报名需求背景、业务规则、流程变化、验收标准和技术方案落地结论。 |
+| 司南榜, 司南榜报名, 报名需求, 报名业务规则, 报名验收标准 | [spec-prds/司南榜报名.md](spec-prds/司南榜报名.md) | 查司南榜报名需求背景、业务规则、流程变化和验收标准。 |
 
 ## 材料域
 
