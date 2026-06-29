@@ -1,0 +1,7 @@
+target/
+.DS_Store
+.idea/
+Knowledgebase/.git/
+Knowledgebase/.idea/
+Knowledgebase/*.iml
+Knowledgebase/**/.DS_Store
