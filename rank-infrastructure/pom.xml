@@ -16,6 +16,11 @@
     <dependencies>
         <dependency>
             <groupId>com.rank</groupId>
+            <artifactId>rank-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rank</groupId>
             <artifactId>rank-domain</artifactId>
             <version>${project.version}</version>
         </dependency>

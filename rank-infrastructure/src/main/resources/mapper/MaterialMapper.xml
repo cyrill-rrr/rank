@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rank.infrastructure.material.mapper.MaterialMapper">
+
+    <resultMap id="BaseResultMap" type="com.rank.infrastructure.material.po.MaterialPO">
+        <id column="id" property="id"/>
+        <result column="material_scene" property="materialScene"/>
+        <result column="audit_subject_id" property="auditSubjectId"/>
+        <result column="has_draft" property="hasDraft"/>
+        <result column="audit_status" property="auditStatus"/>
+        <result column="draft_material_json_str" property="draftMaterialJsonStr"/>
+        <result column="material_json_str" property="materialJsonStr"/>
+        <result column="uap_unique_id" property="uapUniqueId"/>
+        <result column="reject_reason" property="rejectReason"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, material_scene, audit_subject_id, has_draft, audit_status,
+        draft_material_json_str, material_json_str, uap_unique_id, reject_reason,
+        created_time, updated_time
+    </sql>
+
+    <select id="selectByBizKey" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM t_material
+        WHERE material_scene = #{materialScene} AND audit_subject_id = #{auditSubjectId}
+    </select>
+
+    <select id="selectByUapUniqueId" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM t_material
+        WHERE uap_unique_id = #{uapUniqueId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_material (material_scene, audit_subject_id, has_draft, audit_status,
+                                draft_material_json_str, material_json_str, uap_unique_id,
+                                reject_reason, created_time, updated_time)
+        VALUES (#{materialScene}, #{auditSubjectId}, #{hasDraft}, #{auditStatus},
+                #{draftMaterialJsonStr}, #{materialJsonStr}, #{uapUniqueId},
+                #{rejectReason}, #{createdTime}, #{updatedTime})
+    </insert>
+
+    <update id="updateByBizKey">
+        UPDATE t_material
+        SET has_draft = #{hasDraft},
+            audit_status = #{auditStatus},
+            draft_material_json_str = #{draftMaterialJsonStr},
+            material_json_str = #{materialJsonStr},
+            uap_unique_id = #{uapUniqueId},
+            reject_reason = #{rejectReason},
+            updated_time = #{updatedTime}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
