@@ -42,6 +42,7 @@ public class MaterialFacadeImpl implements MaterialFacade {
     @Override
     public Response<OperateMaterialResponseDTO> operateMaterial(OperateMaterialRequestDTO request) {
         long start = System.currentTimeMillis();
+        log.info("ccc-workflow-mock-subagent [MaterialFacadeImpl operateMaterial] entry, request={}", JSON.toJSONString(request));
         try {
             // 1. 参数校验（快速失败）
             validateOperateMaterial(request);
@@ -59,14 +60,18 @@ public class MaterialFacadeImpl implements MaterialFacade {
 
             // 5. 结果转换
             OperateMaterialResponseDTO response = materialAssembler.toOperateMaterialResponse(materialId);
+            log.info("ccc-workflow-mock-subagent [MaterialFacadeImpl operateMaterial] success return, materialId={}", materialId);
             return Response.success(response);
         } catch (IllegalArgumentException e) {
+            log.error("ccc-workflow-mock-subagent [MaterialFacadeImpl operateMaterial] catch IllegalArgumentException, request={}", JSON.toJSONString(request), e);
             log.error("[MaterialFacadeImpl operateMaterial] 参数校验失败, request={}", JSON.toJSONString(request), e);
             return Response.fail(400011, e.getMessage());
         } catch (BizException e) {
+            log.error("ccc-workflow-mock-subagent [MaterialFacadeImpl operateMaterial] catch BizException, request={}", JSON.toJSONString(request), e);
             log.error("[MaterialFacadeImpl operateMaterial] 业务异常, request={}", JSON.toJSONString(request), e);
             return Response.fail(400011, e.getMessage());
         } catch (Exception e) {
+            log.error("ccc-workflow-mock-subagent [MaterialFacadeImpl operateMaterial] catch Exception, request={}", JSON.toJSONString(request), e);
             log.error("[MaterialFacadeImpl operateMaterial] 材料操作异常, request={}", JSON.toJSONString(request), e);
             return Response.fail(400011, "材料操作失败");
         } finally {
@@ -77,6 +82,7 @@ public class MaterialFacadeImpl implements MaterialFacade {
     @Override
     public Response<QueryCurrentMaterialResponseDTO> queryCurrentMaterial(QueryCurrentMaterialRequestDTO request) {
         long start = System.currentTimeMillis();
+        log.info("ccc-workflow-mock-subagent [MaterialFacadeImpl queryCurrentMaterial] entry, request={}", JSON.toJSONString(request));
         try {
             // 1. 参数校验
             validateQueryCurrentMaterial(request);
@@ -89,14 +95,18 @@ public class MaterialFacadeImpl implements MaterialFacade {
 
             // 4. 结果转换
             QueryCurrentMaterialResponseDTO response = materialAssembler.toQueryCurrentMaterialResponse(result);
+            log.info("ccc-workflow-mock-subagent [MaterialFacadeImpl queryCurrentMaterial] success return, response={}", JSON.toJSONString(response));
             return Response.success(response);
         } catch (IllegalArgumentException e) {
+            log.error("ccc-workflow-mock-subagent [MaterialFacadeImpl queryCurrentMaterial] catch IllegalArgumentException, request={}", JSON.toJSONString(request), e);
             log.error("[MaterialFacadeImpl queryCurrentMaterial] 参数校验失败, request={}", JSON.toJSONString(request), e);
             return Response.fail(400012, e.getMessage());
         } catch (BizException e) {
+            log.error("ccc-workflow-mock-subagent [MaterialFacadeImpl queryCurrentMaterial] catch BizException, request={}", JSON.toJSONString(request), e);
             log.error("[MaterialFacadeImpl queryCurrentMaterial] 业务异常, request={}", JSON.toJSONString(request), e);
             return Response.fail(400012, e.getMessage());
         } catch (Exception e) {
+            log.error("ccc-workflow-mock-subagent [MaterialFacadeImpl queryCurrentMaterial] catch Exception, request={}", JSON.toJSONString(request), e);
             log.error("[MaterialFacadeImpl queryCurrentMaterial] 查询材料异常, request={}", JSON.toJSONString(request), e);
             return Response.fail(400012, "查询材料信息失败");
         } finally {

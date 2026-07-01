@@ -62,6 +62,7 @@ public class MaterialCommandAppService {
         log.info("[MaterialCommandAppService operateMaterial] 读取材料配置, materialScene={}", command.getMaterialScene());
         MaterialConfigVO config = materialConfigRepository.findByScene(command.getMaterialScene());
         if (config == null) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService operateMaterial] config is null, materialScene={}", command.getMaterialScene());
             throw BizException.notFound("材料场景配置不存在");
         }
 
@@ -85,11 +86,16 @@ public class MaterialCommandAppService {
         // 6. 按操作类型执行不同路径
         if (MaterialOperationEnum.SAVE_DRAFT.name().equals(command.getOperationType())) {
             // 保存草稿：不校验必填，允许空材料
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService operateMaterial] route to handleSaveDraft, materialScene={}, auditSubjectId={}",
+                    command.getMaterialScene(), command.getAuditSubjectId());
             return handleSaveDraft(entity, content, strategy, isNew);
         } else if (MaterialOperationEnum.SUBMIT_AUDIT.name().equals(command.getOperationType())) {
             // 送审：必须先校验非空，再调UAP
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService operateMaterial] route to handleSubmitAudit, materialScene={}, auditSubjectId={}",
+                    command.getMaterialScene(), command.getAuditSubjectId());
             return handleSubmitAudit(entity, content, config, strategy, isNew);
         } else {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService operateMaterial] unknown operationType={}", command.getOperationType());
             throw BizException.invalidParam("不支持的材质操作类型: " + command.getOperationType());
         }
     }
@@ -107,13 +113,17 @@ public class MaterialCommandAppService {
         try {
             materialRepository.saveOrUpdate(entity);
         } catch (Exception e) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService handleSaveDraft] catch Exception, materialScene={}, auditSubjectId={}",
+                    entity.getMaterialScene(), entity.getAuditSubjectId(), e);
             log.error("[MaterialCommandAppService handleSaveDraft] 草稿保存失败, materialScene={}, auditSubjectId={}",
                     entity.getMaterialScene(), entity.getAuditSubjectId(), e);
             // DB不可用时返回materialId保持部分已完成状态
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleSaveDraft] return due to db error, materialId={}", entity.getId());
             return entity.getId();
         }
 
         log.info("[MaterialCommandAppService handleSaveDraft] 草稿保存成功, materialId={}", entity.getId());
+        log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleSaveDraft] success return, materialId={}", entity.getId());
         return entity.getId();
     }
 
@@ -133,6 +143,7 @@ public class MaterialCommandAppService {
 
         // 校验非空：送审时必须不为空
         if (content == null) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] content is null, entityId={}", entity.getId());
             throw BizException.invalidParam("送审材料内容不能为空");
         }
         strategy.checkRequired(content);
@@ -142,8 +153,11 @@ public class MaterialCommandAppService {
         try {
             materialRepository.saveOrUpdate(entity);
         } catch (Exception e) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] catch Exception saveDraft failed, materialScene={}, auditSubjectId={}",
+                    entity.getMaterialScene(), entity.getAuditSubjectId(), e);
             log.error("[MaterialCommandAppService handleSubmitAudit] 草稿保存失败, materialScene={}, auditSubjectId={}",
                     entity.getMaterialScene(), entity.getAuditSubjectId(), e);
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] return due to draft save error, materialId={}", entity.getId());
             return entity.getId();
         }
 
@@ -157,14 +171,19 @@ public class MaterialCommandAppService {
             log.info("[MaterialCommandAppService handleSubmitAudit] UAP审核返回, isSuccess={}, uapUniqueId={}",
                     auditResult.isSuccess(), auditResult.getUapUniqueId());
         } catch (Exception e) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] catch Exception uap call failed, materialId={}", entity.getId(), e);
             log.error("[MaterialCommandAppService handleSubmitAudit] UAP审核调用异常, materialId={}", entity.getId(), e);
             // UAP失败时DB保持HAS_DRAFT+PENDING_SUBMIT，返回materialId
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] return due to uap exception, materialId={}", entity.getId());
             return entity.getId();
         }
 
         if (!auditResult.isSuccess()) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] uap return not success, materialId={}, errorMsg={}",
+                    entity.getId(), auditResult.getErrorMsg());
             log.error("[MaterialCommandAppService handleSubmitAudit] UAP审核返回失败, materialId={}, errorMsg={}",
                     entity.getId(), auditResult.getErrorMsg());
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] return due to uap failure, materialId={}", entity.getId());
             return entity.getId();
         }
 
@@ -173,12 +192,16 @@ public class MaterialCommandAppService {
         try {
             materialRepository.saveOrUpdate(entity);
         } catch (Exception e) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] catch Exception saveOrUpdate failed after uap, materialId={}", entity.getId(), e);
             log.error("[MaterialCommandAppService handleSubmitAudit] 更新审核状态失败, materialId={}", entity.getId(), e);
             // DB不可用，返回materialId
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] return due to db error after uap, materialId={}", entity.getId());
             return entity.getId();
         }
 
         log.info("[MaterialCommandAppService handleSubmitAudit] 送审成功, materialId={}, uapUniqueId={}",
+                entity.getId(), auditResult.getUapUniqueId());
+        log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleSubmitAudit] success return, materialId={}, uapUniqueId={}",
                 entity.getId(), auditResult.getUapUniqueId());
         return entity.getId();
     }
@@ -189,9 +212,12 @@ public class MaterialCommandAppService {
      * @param auditInfo UAP审核回调信息
      */
     public void handleAuditCallback(UapAuditInfoVO auditInfo) {
+        log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleAuditCallback] entry, uapUniqueId={}, auditStatus={}",
+                auditInfo.getUapUniqueId(), auditInfo.getAuditStatus());
         // 1. 按uapUniqueId查找材料记录
         MaterialEntity entity = materialRepository.findByUapUniqueId(auditInfo.getUapUniqueId());
         if (entity == null) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService handleAuditCallback] entity not found, uapUniqueId={}", auditInfo.getUapUniqueId());
             log.error("[MaterialCommandAppService handleAuditCallback] 未找到材料记录, uapUniqueId={}",
                     auditInfo.getUapUniqueId());
             return;
@@ -214,6 +240,8 @@ public class MaterialCommandAppService {
                 }
             }
         } catch (Exception e) {
+            log.error("ccc-workflow-mock-subagent [MaterialCommandAppService handleAuditCallback] catch Exception parsing passageJson, uapUniqueId={}",
+                    auditInfo.getUapUniqueId(), e);
             log.info("[MaterialCommandAppService handleAuditCallback] 透传字段解析异常, uapUniqueId={}", auditInfo.getUapUniqueId(), e);
         }
 
@@ -224,6 +252,7 @@ public class MaterialCommandAppService {
         } else if (MaterialAuditStatusEnum.REJECTED.name().equals(auditInfo.getAuditStatus())) {
             resultStatus = MaterialAuditStatusEnum.REJECTED;
         } else {
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleAuditCallback] unknown auditStatus, status={}", auditInfo.getAuditStatus());
             log.info("[MaterialCommandAppService handleAuditCallback] 未知审核状态, status={}", auditInfo.getAuditStatus());
             return;
         }
@@ -234,8 +263,12 @@ public class MaterialCommandAppService {
             materialRepository.saveOrUpdate(entity);
             log.info("[MaterialCommandAppService handleAuditCallback] 审核回调处理成功, uapUniqueId={}, resultStatus={}",
                     auditInfo.getUapUniqueId(), resultStatus);
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleAuditCallback] callback applied, uapUniqueId={}, resultStatus={}",
+                    auditInfo.getUapUniqueId(), resultStatus);
         } else {
             log.info("[MaterialCommandAppService handleAuditCallback] 非审核中状态忽略回调, uapUniqueId={}, currentStatus={}",
+                    auditInfo.getUapUniqueId(), entity.getAuditStatus());
+            log.info("ccc-workflow-mock-subagent [MaterialCommandAppService handleAuditCallback] ignore callback (not UNDER_REVIEW), uapUniqueId={}, currentStatus={}",
                     auditInfo.getUapUniqueId(), entity.getAuditStatus());
         }
     }

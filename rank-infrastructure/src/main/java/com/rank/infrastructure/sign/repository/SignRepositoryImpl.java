@@ -1,6 +1,7 @@
 package com.rank.infrastructure.sign.repository;
 
 import com.rank.domain.common.PageResult;
+import com.rank.domain.common.CccWorkflowMockSwitch;
 import com.rank.domain.sign.model.SignEntity;
 import com.rank.domain.sign.repository.SignRepository;
 import com.rank.infrastructure.sign.converter.SignConverter;
@@ -31,6 +32,10 @@ public class SignRepositoryImpl implements SignRepository {
 
     @Override
     public List<SignEntity> queryBySceneSubject(String signScene, Long subjectId) {
+        if (CccWorkflowMockSwitch.isEnabled()) {
+            log.info("ccc-workflow-mock-subagent [SignRepositoryImpl queryBySceneSubject] mock return empty list, signScene={}, subjectId={}", signScene, subjectId);
+            return Collections.emptyList();
+        }
         try {
             List<SignPO> poList = signMapper.queryBySceneSubject(signScene, subjectId);
             if (CollectionUtils.isEmpty(poList)) {

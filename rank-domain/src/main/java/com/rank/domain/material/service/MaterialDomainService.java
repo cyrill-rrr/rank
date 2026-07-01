@@ -28,6 +28,8 @@ public class MaterialDomainService {
      * @param config          材料配置（含窗口期）
      */
     public void checkCanOperateMaterial(String materialScene, String auditSubjectId, MaterialConfigVO config) {
+        log.info("ccc-workflow-mock-subagent [MaterialDomainService checkCanOperateMaterial] entry, materialScene={}, auditSubjectId={}",
+                materialScene, auditSubjectId);
         // 1. 窗口期校验
         config.checkCanOperate();
 
@@ -40,10 +42,12 @@ public class MaterialDomainService {
                 signRepository.queryBySceneSubject("DOCTOR", subjectId);
                 log.info("[MaterialDomainService checkCanOperateMaterial] 报名记录查询成功, subjectId={}", subjectId);
             } catch (Exception e) {
+                log.error("ccc-workflow-mock-subagent [MaterialDomainService checkCanOperateMaterial] catch Exception from signRepository, auditSubjectId={}", auditSubjectId, e);
                 log.error("[MaterialDomainService checkCanOperateMaterial] 报名域不可用, 跳过校验, auditSubjectId={}", auditSubjectId, e);
                 // 报名域不可用时放行，不阻断材料操作
             }
         } catch (NumberFormatException e) {
+            log.error("ccc-workflow-mock-subagent [MaterialDomainService checkCanOperateMaterial] catch NumberFormatException, auditSubjectId={}", auditSubjectId, e);
             log.error("[MaterialDomainService checkCanOperateMaterial] auditSubjectId格式非法, auditSubjectId={}", auditSubjectId, e);
             throw BizException.invalidParam("审计主体ID格式非法");
         }

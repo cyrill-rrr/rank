@@ -36,6 +36,8 @@ public class MaterialQueryAppService {
      * @return 当前材料查询结果，无材料时返回null
      */
     public CurrentMaterialResult queryCurrentMaterial(MaterialQry qry) {
+        log.info("ccc-workflow-mock-subagent [MaterialQueryAppService queryCurrentMaterial] entry, materialScene={}, auditSubjectId={}",
+                qry.getMaterialScene(), qry.getAuditSubjectId());
         // 1. 查数据
         log.info("[MaterialQueryAppService queryCurrentMaterial] 查询材料记录, materialScene={}, auditSubjectId={}",
                 qry.getMaterialScene(), qry.getAuditSubjectId());
@@ -44,6 +46,8 @@ public class MaterialQueryAppService {
         // 2. 无材料返回null
         if (entity == null || entity.getId() == null) {
             log.info("[MaterialQueryAppService queryCurrentMaterial] 未找到材料记录, materialScene={}, auditSubjectId={}",
+                    qry.getMaterialScene(), qry.getAuditSubjectId());
+            log.info("ccc-workflow-mock-subagent [MaterialQueryAppService queryCurrentMaterial] return null (no material), materialScene={}, auditSubjectId={}",
                     qry.getMaterialScene(), qry.getAuditSubjectId());
             return null;
         }
@@ -67,13 +71,15 @@ public class MaterialQueryAppService {
         String materialJsonStr = serializeContent(qry.getMaterialScene(), displayContent, strategies);
 
         // 5. 组装结果
-        return new CurrentMaterialResult(
+        CurrentMaterialResult result = new CurrentMaterialResult(
                 entity.getId(),
                 hasDraft,
                 auditStatus,
                 materialJsonStr,
                 entity.getRejectReason()
         );
+        log.info("ccc-workflow-mock-subagent [MaterialQueryAppService queryCurrentMaterial] success return, materialId={}", entity.getId());
+        return result;
     }
 
     /**

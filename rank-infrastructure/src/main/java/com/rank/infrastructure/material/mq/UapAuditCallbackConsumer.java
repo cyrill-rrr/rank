@@ -26,6 +26,8 @@ public class UapAuditCallbackConsumer {
      */
     public void handleAuditCallback(UapAuditCallbackMafkaEvent event) {
         long start = System.currentTimeMillis();
+        log.info("ccc-workflow-mock-subagent [UapAuditCallbackConsumer handleAuditCallback] entry, uapUniqueId={}, auditStatus={}",
+                event.getUapUniqueId(), event.getAuditStatus());
         try {
             log.info("[UapAuditCallbackConsumer handleAuditCallback] 收到UAP审核回调, uapUniqueId={}, auditStatus={}",
                     event.getUapUniqueId(), event.getAuditStatus());
@@ -39,6 +41,7 @@ public class UapAuditCallbackConsumer {
 
             materialCommandAppService.handleAuditCallback(auditInfo);
         } catch (Exception e) {
+            log.error("ccc-workflow-mock-subagent [UapAuditCallbackConsumer handleAuditCallback] catch Exception, uapUniqueId={}", event.getUapUniqueId(), e);
             log.error("[UapAuditCallbackConsumer handleAuditCallback] 处理UAP审核回调异常, uapUniqueId={}",
                     event.getUapUniqueId(), e);
         } finally {
