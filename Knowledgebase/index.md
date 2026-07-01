@@ -32,8 +32,12 @@ source_refs: []
 
 | 关键词/别名 | 映射文档 | 说明 |
 | --- | --- | --- |
-| 材料, material, 报名材料, 材料提交, 材料补交 | [domains/material/README.md](domains/material/README.md) | 材料域入口，查材料模型、材料版本、材料状态和隐形知识。 |
-| 材料驳回, rejected, 驳回原因, 重新提交 | [domains/material/README.md](domains/material/README.md) | 查材料状态机、驳回状态、版本和重新提交规则。 |
+| 材料, material, 报名材料, 材料提交, 材料补交 | [domains/material/README.md](domains/material/README.md) | 材料域入口，查材料模型、材料状态、持久化和隐形知识。 |
+| 司南榜材料提报, 医美医生榜材料, 口腔医生榜材料, auditSubjectId, techId材料 | [domains/material/README.md](domains/material/README.md) | 查司南榜医生榜材料场景、主体口径和材料内容结构。 |
+| 保存草稿, 材料草稿, SAVE_DRAFT, HAS_DRAFT, NO_DRAFT | [domains/material/README.md](domains/material/README.md) | 查材料草稿规则、查询回显优先级和草稿状态字段。 |
+| 材料送审, SUBMIT_AUDIT, UAP审核, UAP回调, uapUniqueId, 审核中 | [domains/material/README.md](domains/material/README.md) | 查送审链路、UAP 提交、MQ 回调和审核状态流转。 |
+| 材料驳回, rejected, REJECTED, 驳回原因, 重新提交 | [domains/material/README.md](domains/material/README.md) | 查材料状态机、驳回状态、驳回原因和重新提交规则。 |
+| 材料窗口期, 材料配置, UAP模板, uapTemplate, t_material | [domains/material/README.md](domains/material/README.md) | 查材料配置来源、持久化字段和待补充的真实配置/DDL。 |
 | 商家报名材料驳回, 驳回报名材料, 怎么驳回材料 | [workflows/商家报名材料驳回-workflow.md](workflows/商家报名材料驳回-workflow.md) | 查完整驳回流程，包括判断、原因、状态变更、通知和审计。 |
 
 ## 评审域
