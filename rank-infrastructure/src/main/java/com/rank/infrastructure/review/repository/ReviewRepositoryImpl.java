@@ -103,7 +103,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         } catch (Exception e) {
             log.error("[ReviewRepositoryImpl queryPage] 分页查询异常, materialId={}, userId={}, scene={}",
                     materialId, userId, scene, e);
-            return PageResult.empty(pageNo, pageSize);
+            throw e;
         }
     }
 
@@ -122,7 +122,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             return new PageResult<>(total, pageNo, pageSize, records);
         } catch (Exception e) {
             log.error("[ReviewRepositoryImpl queryPageByUserId] 按用户分页查询异常, userId={}", userId, e);
-            return PageResult.empty(pageNo, pageSize);
+            throw e;
         }
     }
 

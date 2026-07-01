@@ -6,16 +6,15 @@ import com.rank.application.review.command.ImportReviewTasksCommand;
 import com.rank.application.review.command.SubmitReviewScoreCommand;
 import com.rank.application.review.factory.ReviewFactory;
 import com.rank.domain.common.exception.BizException;
-import com.rank.domain.review.event.ReviewTaskAssignEvent;
 import com.rank.domain.review.vo.QuestionAnswerVO;
 import com.rank.domain.review.model.ReviewTaskEntity;
 import com.rank.domain.review.repository.ReviewQuestionConfigRepository;
 import com.rank.domain.review.repository.ReviewRepository;
+import com.rank.domain.review.repository.ReviewTaskAssignProducer;
 import com.rank.domain.review.repository.ReviewTemplateConfigRepository;
 import com.rank.domain.review.vo.QuestionConfigVO;
 import com.rank.domain.review.vo.ReviewTemplateVO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -24,26 +23,29 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 评审写操作编排服务
+ * 评审写操作编排服务。
+ * 分单链路通过 ReviewTaskAssignProducer 接口发送消息，
+ * 当前实现（MafkaProducer）内部使用 Spring Event 桥接（因 Mafka 环境未就绪），
+ * 后续切换真实 MQ 时仅需修改基础设施层实现，本类无需变更。
  */
 @Slf4j
 @Service
 public class ReviewCommandAppService {
 
-    private final ApplicationEventPublisher eventPublisher;
+    private final ReviewTaskAssignProducer reviewTaskAssignProducer;
     private final ReviewRepository reviewRepository;
     private final ReviewTemplateConfigRepository reviewTemplateConfigRepository;
     private final ReviewQuestionConfigRepository reviewQuestionConfigRepository;
     private final ReviewFactory reviewFactory;
     private final ReviewAssembler reviewAssembler;
 
-    public ReviewCommandAppService(ApplicationEventPublisher eventPublisher,
+    public ReviewCommandAppService(ReviewTaskAssignProducer reviewTaskAssignProducer,
                                    ReviewRepository reviewRepository,
                                    ReviewTemplateConfigRepository reviewTemplateConfigRepository,
                                    ReviewQuestionConfigRepository reviewQuestionConfigRepository,
                                    ReviewFactory reviewFactory,
                                    ReviewAssembler reviewAssembler) {
-        this.eventPublisher = eventPublisher;
+        this.reviewTaskAssignProducer = reviewTaskAssignProducer;
         this.reviewRepository = reviewRepository;
         this.reviewTemplateConfigRepository = reviewTemplateConfigRepository;
         this.reviewQuestionConfigRepository = reviewQuestionConfigRepository;
@@ -52,22 +54,23 @@ public class ReviewCommandAppService {
     }
 
     /**
-     * 分单：逐行发布 Spring Event
+     * 分单：遍历每行分单数据，通过 ReviewTaskAssignProducer 逐行发送分单消息。
+     * MafkaProducer（当前实现）使用 Spring Event 桥接（因 Mafka 环境未就绪），
+     * 后续切换真实 MQ 时仅需修改基础设施层实现，本方法无需变更。
      *
      * @param command 分单命令
      */
     public void importReviewTasks(ImportReviewTasksCommand command) {
-        // 1. 遍历每行分单数据，发布事件
+        // 1. 遍历每行分单数据，发送分单消息
         if (CollectionUtils.isEmpty(command.getRows())) {
             log.info("[ReviewCommandAppService importReviewTasks] 分单行为空, operatorUserId={}", command.getOperatorUserId());
             return;
         }
         for (ImportReviewTasksCommand.ImportReviewTaskItem row : command.getRows()) {
-            // 2. 发布 ReviewTaskAssignEvent
-            eventPublisher.publishEvent(new ReviewTaskAssignEvent(
-                    row.getMaterialId(), row.getUserId(), row.getScene(), command.getOperatorUserId()));
+            // 2. 通过 ReviewTaskAssignProducer 发送消息
+            reviewTaskAssignProducer.send(row.getMaterialId(), row.getUserId(), row.getScene(), command.getOperatorUserId());
         }
-        log.info("[ReviewCommandAppService importReviewTasks] 发布分单事件完成, rows={}, operatorUserId={}",
+        log.info("[ReviewCommandAppService importReviewTasks] 发送分单消息完成, rows={}, operatorUserId={}",
                 command.getRows().size(), command.getOperatorUserId());
     }
 

@@ -28,7 +28,7 @@ public interface ReviewFacade {
      *
      * @param request 分单请求（含 operatorUserId 和行列表）
      * @return accepted=true 表示已接收分单请求
-     * 网关 Path：待补充
+     * 网关 Path：/review/importReviewTasks
      */
     Response<ImportReviewTasksResponseDTO> importReviewTasks(ImportReviewTasksRequestDTO request);
 
@@ -37,7 +37,7 @@ public interface ReviewFacade {
      *
      * @param request 删单请求（含 operatorUserId 和 userId）
      * @return affectedRows 删除影响行数
-     * 网关 Path：待补充
+     * 网关 Path：/review/deleteReviewTasks
      */
     Response<DeleteReviewTasksResponseDTO> deleteReviewTasks(DeleteReviewTasksRequestDTO request);
 
@@ -48,7 +48,7 @@ public interface ReviewFacade {
      *
      * @param request 列表查询请求
      * @return 分页结果
-     * 网关 Path：待补充
+     * 网关 Path：/review/queryReviewTasks
      */
     Response<QueryReviewTasksResponseDTO> queryReviewTasks(QueryReviewTasksRequestDTO request);
 
@@ -57,7 +57,7 @@ public interface ReviewFacade {
      *
      * @param request 详情查询请求
      * @return 评审单详情（含材料详情和问题列表）
-     * 网关 Path：待补充
+     * 网关 Path：/review/queryReviewTaskDetail
      */
     Response<QueryReviewTaskDetailResponseDTO> queryReviewTaskDetail(QueryReviewTaskDetailRequestDTO request);
 
@@ -66,7 +66,7 @@ public interface ReviewFacade {
      *
      * @param request 提交打分请求
      * @return 提交后的评审单 ID 和状态
-     * 网关 Path：待补充
+     * 网关 Path：/review/submitReviewScore
      */
     Response<SubmitReviewScoreResponseDTO> submitReviewScore(SubmitReviewScoreRequestDTO request);
 }

@@ -67,7 +67,7 @@ public class ReviewAssembler {
      */
     public ImportReviewTasksResponseDTO toImportResponse(boolean accepted) {
         ImportReviewTasksResponseDTO dto = new ImportReviewTasksResponseDTO();
-        dto.setAccepted(accepted);
+        dto.setAccepted(accepted); // 是否已接收分单请求
         return dto;
     }
 
@@ -88,7 +88,7 @@ public class ReviewAssembler {
      */
     public DeleteReviewTasksResponseDTO toDeleteResponse(int affectedRows) {
         DeleteReviewTasksResponseDTO dto = new DeleteReviewTasksResponseDTO();
-        dto.setAffectedRows(affectedRows);
+        dto.setAffectedRows(affectedRows); // 删除影响行数
         return dto;
     }
 
@@ -116,9 +116,9 @@ public class ReviewAssembler {
     public QueryReviewTasksResponseDTO toQueryPageResponse(long total, int pageNo, int pageSize,
                                                             List<ReviewTaskEntity> records) {
         QueryReviewTasksResponseDTO dto = new QueryReviewTasksResponseDTO();
-        dto.setTotal(total);
-        dto.setPageNo(pageNo);
-        dto.setPageSize(pageSize);
+        dto.setTotal(total);        // 总数
+        dto.setPageNo(pageNo);      // 页码
+        dto.setPageSize(pageSize);  // 每页大小
         if (!CollectionUtils.isEmpty(records)) {
             List<ReviewTaskRecordDTO> recordDTOs = records.stream()
                     .map(this::toReviewTaskRecordDTO)
@@ -233,8 +233,8 @@ public class ReviewAssembler {
      */
     public SubmitReviewScoreResponseDTO toSubmitResponse(Long reviewTaskId, String status) {
         SubmitReviewScoreResponseDTO dto = new SubmitReviewScoreResponseDTO();
-        dto.setReviewTaskId(reviewTaskId);
-        dto.setStatus(status);
+        dto.setReviewTaskId(reviewTaskId); // 评审任务ID
+        dto.setStatus(status);             // 提交后的评审状态
         return dto;
     }
 
