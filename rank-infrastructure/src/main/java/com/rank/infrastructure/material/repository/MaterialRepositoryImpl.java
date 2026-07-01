@@ -1,7 +1,5 @@
 package com.rank.infrastructure.material.repository;
 
-import com.alibaba.fastjson.JSON;
-import com.rank.domain.common.CccWorkflowMockSwitch;
 import com.rank.domain.material.model.AbstractMaterialContent;
 import com.rank.domain.material.model.MaterialEntity;
 import com.rank.domain.material.repository.MaterialRepository;
@@ -38,16 +36,6 @@ public class MaterialRepositoryImpl implements MaterialRepository {
 
     @Override
     public MaterialEntity findByBizKey(String materialScene, String auditSubjectId) {
-        if (CccWorkflowMockSwitch.isEnabled()) {
-            MaterialEntity mockEntity = new MaterialEntity(materialScene, auditSubjectId);
-            mockEntity.setId(1L);
-            mockEntity.setHasDraft(MaterialDraftStatusEnum.NO_DRAFT);
-            mockEntity.setAuditStatus(MaterialAuditStatusEnum.PENDING_SUBMIT);
-            mockEntity.setCreatedTime(new Date());
-            mockEntity.setUpdatedTime(new Date());
-            log.info("ccc-workflow-mock-subagent [MaterialRepositoryImpl findByBizKey] mock return entity={}", JSON.toJSONString(mockEntity));
-            return mockEntity;
-        }
         try {
             MaterialPO po = materialMapper.selectByBizKey(materialScene, auditSubjectId);
             if (po == null) {
@@ -82,17 +70,6 @@ public class MaterialRepositoryImpl implements MaterialRepository {
 
     @Override
     public MaterialEntity findByUapUniqueId(String uapUniqueId) {
-        if (CccWorkflowMockSwitch.isEnabled()) {
-            MaterialEntity mockEntity = new MaterialEntity("MEDICAL_BEAUTY_DOCTOR", "12345");
-            mockEntity.setId(1L);
-            mockEntity.setUapUniqueId(uapUniqueId);
-            mockEntity.setHasDraft(MaterialDraftStatusEnum.NO_DRAFT);
-            mockEntity.setAuditStatus(MaterialAuditStatusEnum.UNDER_REVIEW);
-            mockEntity.setCreatedTime(new Date());
-            mockEntity.setUpdatedTime(new Date());
-            log.info("ccc-workflow-mock-subagent [MaterialRepositoryImpl findByUapUniqueId] mock return entity={}", JSON.toJSONString(mockEntity));
-            return mockEntity;
-        }
         try {
             MaterialPO po = materialMapper.selectByUapUniqueId(uapUniqueId);
             if (po == null) {
@@ -127,16 +104,6 @@ public class MaterialRepositoryImpl implements MaterialRepository {
 
     @Override
     public void saveOrUpdate(MaterialEntity materialEntity) {
-        if (CccWorkflowMockSwitch.isEnabled()) {
-            log.info("ccc-workflow-mock-subagent [MaterialRepositoryImpl saveOrUpdate] mock skip db write, materialScene={}, auditSubjectId={}, id={}",
-                    materialEntity.getMaterialScene(), materialEntity.getAuditSubjectId(), materialEntity.getId());
-            if (materialEntity.getId() == null) {
-                materialEntity.setId(1L);
-            }
-            materialEntity.setCreatedTime(new Date());
-            materialEntity.setUpdatedTime(new Date());
-            return;
-        }
         try {
             // 序列化材料内容为JSON
             MaterialSceneStrategy strategy = findStrategy(materialEntity.getMaterialScene(), strategies);

@@ -1,7 +1,5 @@
 package com.rank.infrastructure.material.config;
 
-import com.alibaba.fastjson.JSON;
-import com.rank.domain.common.CccWorkflowMockSwitch;
 import com.rank.domain.material.repository.MaterialConfigRepository;
 import com.rank.domain.material.shared.MaterialSceneEnum;
 import com.rank.domain.material.vo.MaterialConfigVO;
@@ -23,19 +21,6 @@ public class MaterialConfigRepositoryImpl implements MaterialConfigRepository {
 
     @Override
     public MaterialConfigVO findByScene(String materialScene) {
-        if (CccWorkflowMockSwitch.isEnabled()) {
-            try {
-                MaterialConfigVO mockConfig = new MaterialConfigVO(
-                        DATE_FORMAT.parse("2026-01-01 00:00:00"),
-                        DATE_FORMAT.parse("2026-12-31 23:59:59"),
-                        "uap_template_mock");
-                log.info("ccc-workflow-mock-subagent [MaterialConfigRepositoryImpl findByScene] mock return config={}", JSON.toJSONString(mockConfig));
-                return mockConfig;
-            } catch (ParseException e) {
-                log.error("ccc-workflow-mock-subagent [MaterialConfigRepositoryImpl findByScene] mock data parse error", e);
-                return null;
-            }
-        }
         try {
             log.info("[MaterialConfigRepositoryImpl findByScene] 读取材料配置, materialScene={}", materialScene);
 
