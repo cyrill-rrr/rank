@@ -219,9 +219,9 @@ public class MaterialCommandAppService {
 
         // 3. 映射审核状态
         MaterialAuditStatusEnum resultStatus;
-        if ("APPROVED".equals(auditInfo.getAuditStatus())) {
+        if (MaterialAuditStatusEnum.APPROVED.name().equals(auditInfo.getAuditStatus())) {
             resultStatus = MaterialAuditStatusEnum.APPROVED;
-        } else if ("REJECTED".equals(auditInfo.getAuditStatus())) {
+        } else if (MaterialAuditStatusEnum.REJECTED.name().equals(auditInfo.getAuditStatus())) {
             resultStatus = MaterialAuditStatusEnum.REJECTED;
         } else {
             log.info("[MaterialCommandAppService handleAuditCallback] 未知审核状态, status={}", auditInfo.getAuditStatus());
