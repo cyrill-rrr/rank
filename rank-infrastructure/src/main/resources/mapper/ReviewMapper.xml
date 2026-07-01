@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rank.infrastructure.review.mapper.ReviewMapper">
+
+    <resultMap id="BaseResultMap" type="com.rank.infrastructure.review.po.ReviewTaskPO">
+        <id column="id" property="id"/>
+        <result column="material_id" property="materialId"/>
+        <result column="user_id" property="userId"/>
+        <result column="scene" property="scene"/>
+        <result column="status" property="status"/>
+        <result column="question_answer_json_str" property="questionAnswerJsonStr"/>
+        <result column="deleted" property="deleted"/>
+        <result column="ctime" property="ctime"/>
+        <result column="mtime" property="mtime"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, material_id, user_id, scene, status, question_answer_json_str, deleted, ctime, mtime
+    </sql>
+
+    <!-- 按业务键查询有效记录 -->
+    <select id="findByBizKey" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM t_review_task
+        WHERE material_id = #{materialId} AND user_id = #{userId} AND scene = #{scene} AND deleted = 0
+    </select>
+
+    <!-- 按主键查询有效记录 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM t_review_task
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <!-- 新增评审单 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_review_task (material_id, user_id, scene, status, question_answer_json_str, deleted, ctime, mtime)
+        VALUES (#{materialId}, #{userId}, #{scene}, #{status}, #{questionAnswerJsonStr}, #{deleted}, #{ctime}, #{mtime})
+    </insert>
+
+    <!-- 更新评审单 -->
+    <update id="update">
+        UPDATE t_review_task
+        SET status = #{status},
+            question_answer_json_str = #{questionAnswerJsonStr},
+            mtime = #{mtime}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <!-- 按用户ID逻辑删除 -->
+    <update id="deleteByUserId">
+        UPDATE t_review_task
+        SET deleted = 1, mtime = NOW()
+        WHERE user_id = #{userId} AND deleted = 0
+    </update>
+
+    <!-- 管理员视角分页查询 -->
+    <select id="queryPage" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM t_review_task
+        WHERE deleted = 0
+        <if test="materialId != null">
+            AND material_id = #{materialId}
+        </if>
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        <if test="scene != null and scene != ''">
+            AND scene = #{scene}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY mtime DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 管理员视角统计总数 -->
+    <select id="countPage" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_review_task
+        WHERE deleted = 0
+        <if test="materialId != null">
+            AND material_id = #{materialId}
+        </if>
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        <if test="scene != null and scene != ''">
+            AND scene = #{scene}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <!-- 专家视角分页查询 -->
+    <select id="queryPageByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM t_review_task
+        WHERE user_id = #{userId} AND deleted = 0
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY mtime DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 专家视角统计总数 -->
+    <select id="countPageByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_review_task
+        WHERE user_id = #{userId} AND deleted = 0
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+</mapper>
