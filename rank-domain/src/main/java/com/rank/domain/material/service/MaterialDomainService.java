@@ -40,7 +40,7 @@ public class MaterialDomainService {
                 signRepository.queryBySceneSubject("DOCTOR", subjectId);
                 log.info("[MaterialDomainService checkCanOperateMaterial] 报名记录查询成功, subjectId={}", subjectId);
             } catch (Exception e) {
-                log.error("[MaterialDomainService checkCanOperateMaterial] 报名域不可用, 跳过报名记录校验, auditSubjectId={}", auditSubjectId, e);
+                log.error("[MaterialDomainService checkCanOperateMaterial] 报名域不可用, 跳过校验, auditSubjectId={}", auditSubjectId, e);
                 // 报名域不可用时放行，不阻断材料操作
             }
         } catch (NumberFormatException e) {
