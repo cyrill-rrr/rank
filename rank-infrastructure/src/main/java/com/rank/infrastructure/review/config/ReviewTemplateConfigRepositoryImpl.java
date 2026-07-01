@@ -25,12 +25,21 @@ public class ReviewTemplateConfigRepositoryImpl implements ReviewTemplateConfigR
             return null;
         }
 
-        // 硬编码示例数据：MEDICAL_BEAUTY_DOCTOR 场景
-        // questionIds=[Q001, Q002]; groups=[]
-        return ReviewTemplateVO.of(
-                scene,
-                Arrays.asList("Q001", "Q002"),
-                Collections.<QuestionGroupVO>emptyList()
-        );
+        try {
+            // 当前为硬编码示例数据：MEDICAL_BEAUTY_DOCTOR 场景
+            // 接入真实 Lion 后替换为远程调用
+            // questionIds=[Q001, Q002]; groups=[]
+            ReviewTemplateVO result = ReviewTemplateVO.of(
+                    scene,
+                    Arrays.asList("Q001", "Q002"),
+                    Collections.<QuestionGroupVO>emptyList()
+            );
+            log.info("[ReviewTemplateConfigRepositoryImpl findByScene] 读取模板配置完成, scene={}, questionIds={}",
+                    scene, result.getQuestionIdList());
+            return result;
+        } catch (Exception e) {
+            log.error("[ReviewTemplateConfigRepositoryImpl findByScene] 远程读取模板配置异常, scene={}", scene, e);
+            return null;
+        }
     }
 }

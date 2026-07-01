@@ -1,6 +1,7 @@
 package com.rank.infrastructure.review.mq;
 
 import com.rank.domain.review.event.ReviewTaskAssignEvent;
+import com.rank.application.review.factory.ReviewFactory;
 import com.rank.domain.review.model.ReviewTaskEntity;
 import com.rank.domain.review.repository.ReviewRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +18,11 @@ import org.springframework.stereotype.Component;
 public class ReviewTaskAssignConsumer {
 
     private final ReviewRepository reviewRepository;
+    private final ReviewFactory reviewFactory;
 
-    public ReviewTaskAssignConsumer(ReviewRepository reviewRepository) {
+    public ReviewTaskAssignConsumer(ReviewRepository reviewRepository, ReviewFactory reviewFactory) {
         this.reviewRepository = reviewRepository;
+        this.reviewFactory = reviewFactory;
     }
 
     /**
@@ -45,8 +48,8 @@ public class ReviewTaskAssignConsumer {
                 return;
             }
 
-            // 2. 创建评审单
-            ReviewTaskEntity entity = new ReviewTaskEntity(
+            // 2. 通过 Factory 创建评审单
+            ReviewTaskEntity entity = reviewFactory.createNewTask(
                     event.getMaterialId(), event.getUserId(), event.getScene());
 
             // 3. 持久化

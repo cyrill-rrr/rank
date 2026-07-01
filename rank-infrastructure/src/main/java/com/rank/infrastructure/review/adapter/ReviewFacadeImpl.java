@@ -1,4 +1,4 @@
-package com.rank.application.review.facade;
+package com.rank.infrastructure.review.adapter;
 
 import com.rank.api.common.Response;
 import com.rank.api.review.dto.DeleteReviewTasksRequestDTO;

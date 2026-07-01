@@ -2,7 +2,8 @@ package com.rank.domain.review.model;
 
 import com.rank.domain.common.exception.BizException;
 import com.rank.domain.review.shared.ReviewTaskStatusEnum;
-import lombok.Getter;
+import com.rank.domain.review.vo.QuestionAnswerVO;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,7 +18,7 @@ import java.util.Set;
  * 2. 未打分状态才能提交打分；已打分后不允许重新提交或修改。
  * 3. 专家提交的 questionId 必须来自提交时当前 scene 的问题模板。
  */
-@Getter
+@Data
 public class ReviewTaskEntity {
 
     /** 评审任务主键 */
@@ -117,43 +118,5 @@ public class ReviewTaskEntity {
                 throw BizException.invalidParam("必答问题未完成");
             }
         }
-    }
-
-    // ====== MyBatis / Converter 使用 setter ======
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setMaterialId(Long materialId) {
-        this.materialId = materialId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public void setScene(String scene) {
-        this.scene = scene;
-    }
-
-    public void setStatus(ReviewTaskStatusEnum status) {
-        this.status = status;
-    }
-
-    public void setQuestionAnswerList(List<QuestionAnswerVO> questionAnswerList) {
-        this.questionAnswerList = questionAnswerList;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
-    }
-
-    public void setCreatedTime(Date createdTime) {
-        this.createdTime = createdTime;
-    }
-
-    public void setUpdatedTime(Date updatedTime) {
-        this.updatedTime = updatedTime;
     }
 }

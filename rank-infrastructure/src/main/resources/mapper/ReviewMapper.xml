@@ -58,19 +58,21 @@
     <select id="queryPage" resultMap="BaseResultMap">
         SELECT <include refid="BaseColumns"/>
         FROM t_review_task
-        WHERE deleted = 0
-        <if test="materialId != null">
-            AND material_id = #{materialId}
-        </if>
-        <if test="userId != null">
-            AND user_id = #{userId}
-        </if>
-        <if test="scene != null and scene != ''">
-            AND scene = #{scene}
-        </if>
-        <if test="status != null and status != ''">
-            AND status = #{status}
-        </if>
+        <where>
+            deleted = 0
+            <if test="materialId != null">
+                AND material_id = #{materialId}
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="scene != null and scene != ''">
+                AND scene = #{scene}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
         ORDER BY mtime DESC
         LIMIT #{offset}, #{limit}
     </select>
@@ -79,29 +81,34 @@
     <select id="countPage" resultType="java.lang.Long">
         SELECT COUNT(*)
         FROM t_review_task
-        WHERE deleted = 0
-        <if test="materialId != null">
-            AND material_id = #{materialId}
-        </if>
-        <if test="userId != null">
-            AND user_id = #{userId}
-        </if>
-        <if test="scene != null and scene != ''">
-            AND scene = #{scene}
-        </if>
-        <if test="status != null and status != ''">
-            AND status = #{status}
-        </if>
+        <where>
+            deleted = 0
+            <if test="materialId != null">
+                AND material_id = #{materialId}
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="scene != null and scene != ''">
+                AND scene = #{scene}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
     </select>
 
     <!-- 专家视角分页查询 -->
     <select id="queryPageByUserId" resultMap="BaseResultMap">
         SELECT <include refid="BaseColumns"/>
         FROM t_review_task
-        WHERE user_id = #{userId} AND deleted = 0
-        <if test="status != null and status != ''">
-            AND status = #{status}
-        </if>
+        <where>
+            user_id = #{userId}
+            AND deleted = 0
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
         ORDER BY mtime DESC
         LIMIT #{offset}, #{limit}
     </select>
@@ -110,10 +117,13 @@
     <select id="countPageByUserId" resultType="java.lang.Long">
         SELECT COUNT(*)
         FROM t_review_task
-        WHERE user_id = #{userId} AND deleted = 0
-        <if test="status != null and status != ''">
-            AND status = #{status}
-        </if>
+        <where>
+            user_id = #{userId}
+            AND deleted = 0
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
     </select>
 
 </mapper>

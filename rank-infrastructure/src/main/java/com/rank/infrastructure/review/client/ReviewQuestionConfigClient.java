@@ -58,6 +58,8 @@ public class ReviewQuestionConfigClient implements ReviewQuestionConfigRepositor
             return Collections.emptyList();
         }
 
+        log.info("[ReviewQuestionConfigClient queryQuestionConfig] 查询完成, questionIdListSize={}, resultSize={}",
+                questionIdList.size(), result.size());
         return result;
     }
 }

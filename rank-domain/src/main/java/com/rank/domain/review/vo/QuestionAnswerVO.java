@@ -1,4 +1,4 @@
-package com.rank.domain.review.model;
+package com.rank.domain.review.vo;
 
 import com.rank.domain.common.exception.BizException;
 import lombok.Getter;

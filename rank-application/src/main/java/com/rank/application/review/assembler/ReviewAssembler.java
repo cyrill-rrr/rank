@@ -19,7 +19,7 @@ import com.rank.application.review.command.SubmitReviewScoreCommand;
 import com.rank.application.review.command.SubmitReviewScoreCommand.QuestionAnswerItem;
 import com.rank.application.review.qry.ReviewTaskDetailQry;
 import com.rank.application.review.qry.ReviewTaskPageQry;
-import com.rank.domain.review.model.QuestionAnswerVO;
+import com.rank.domain.review.vo.QuestionAnswerVO;
 import com.rank.domain.review.model.ReviewTaskEntity;
 import com.rank.domain.review.vo.MaterialDetailVO;
 import com.rank.domain.review.vo.QuestionConfigVO;
@@ -46,13 +46,13 @@ public class ReviewAssembler {
      */
     public ImportReviewTasksCommand toImportCommand(ImportReviewTasksRequestDTO dto, Long operatorUserId) {
         ImportReviewTasksCommand command = new ImportReviewTasksCommand();
-        command.setOperatorUserId(operatorUserId);
+        command.setOperatorUserId(operatorUserId);                     // 操作人用户ID
         if (!CollectionUtils.isEmpty(dto.getRows())) {
             List<ImportReviewTaskItem> items = dto.getRows().stream().map(row -> {
                 ImportReviewTaskItem item = new ImportReviewTaskItem();
-                item.setMaterialId(row.getMaterialId());
-                item.setUserId(row.getUserId());
-                item.setScene(row.getScene());
+                item.setMaterialId(row.getMaterialId());               // 外部材料ID
+                item.setUserId(row.getUserId());                       // 专家用户ID
+                item.setScene(row.getScene());                         // 评审场景
                 return item;
             }).collect(Collectors.toList());
             command.setRows(items);
@@ -78,8 +78,8 @@ public class ReviewAssembler {
      */
     public DeleteReviewTasksCommand toDeleteCommand(DeleteReviewTasksRequestDTO dto, Long operatorUserId) {
         DeleteReviewTasksCommand command = new DeleteReviewTasksCommand();
-        command.setOperatorUserId(operatorUserId);
-        command.setUserId(dto.getUserId());
+        command.setOperatorUserId(operatorUserId);                     // 操作人用户ID
+        command.setUserId(dto.getUserId());                            // 被删除评审单所属用户ID
         return command;
     }
 
@@ -99,14 +99,14 @@ public class ReviewAssembler {
      */
     public ReviewTaskPageQry toPageQry(QueryReviewTasksRequestDTO dto, Long loginUserId, boolean admin) {
         ReviewTaskPageQry qry = new ReviewTaskPageQry();
-        qry.setLoginUserId(loginUserId);
-        qry.setAdmin(admin);
-        qry.setMaterialId(dto.getMaterialId());
-        qry.setUserId(dto.getUserId());
-        qry.setScene(dto.getScene());
-        qry.setStatus(dto.getStatus());
-        qry.setPageNo(dto.getPageNo() != null ? dto.getPageNo() : 1);
-        qry.setPageSize(dto.getPageSize() != null ? dto.getPageSize() : 20);
+        qry.setLoginUserId(loginUserId);                               // 当前登录用户ID
+        qry.setAdmin(admin);                                           // 是否管理员
+        qry.setMaterialId(dto.getMaterialId());                        // 材料ID筛选（管理员）
+        qry.setUserId(dto.getUserId());                                // 用户ID筛选（管理员）
+        qry.setScene(dto.getScene());                                  // 评审场景
+        qry.setStatus(dto.getStatus());                                // 状态筛选：UNSCORED/SCORED
+        qry.setPageNo(dto.getPageNo() != null ? dto.getPageNo() : 1);  // 页码，默认第1页
+        qry.setPageSize(dto.getPageSize() != null ? dto.getPageSize() : 20); // 每页大小，默认20
         return qry;
     }
 
@@ -150,9 +150,9 @@ public class ReviewAssembler {
      */
     public ReviewTaskDetailQry toDetailQry(QueryReviewTaskDetailRequestDTO dto, Long loginUserId, boolean admin) {
         ReviewTaskDetailQry qry = new ReviewTaskDetailQry();
-        qry.setLoginUserId(loginUserId);
-        qry.setAdmin(admin);
-        qry.setReviewTaskId(dto.getReviewTaskId());
+        qry.setLoginUserId(loginUserId);                               // 当前登录用户ID
+        qry.setAdmin(admin);                                           // 是否管理员
+        qry.setReviewTaskId(dto.getReviewTaskId());                    // 评审任务ID
         return qry;
     }
 
@@ -212,13 +212,13 @@ public class ReviewAssembler {
      */
     public SubmitReviewScoreCommand toSubmitCommand(SubmitReviewScoreRequestDTO dto, Long loginUserId) {
         SubmitReviewScoreCommand command = new SubmitReviewScoreCommand();
-        command.setReviewTaskId(dto.getReviewTaskId());
-        command.setLoginUserId(loginUserId);
+        command.setReviewTaskId(dto.getReviewTaskId());                // 评审任务ID
+        command.setLoginUserId(loginUserId);                           // 当前登录用户ID
         if (!CollectionUtils.isEmpty(dto.getAnswers())) {
             List<QuestionAnswerItem> items = dto.getAnswers().stream().map(a -> {
                 QuestionAnswerItem item = new QuestionAnswerItem();
-                item.setQuestionId(a.getQuestionId());
-                item.setScore(a.getScore());
+                item.setQuestionId(a.getQuestionId());                 // 问题ID
+                item.setScore(a.getScore());                           // 分数1~10
                 return item;
             }).collect(Collectors.toList());
             command.setAnswers(items);

@@ -2,7 +2,7 @@ package com.rank.infrastructure.review.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rank.domain.review.model.QuestionAnswerVO;
+import com.rank.domain.review.vo.QuestionAnswerVO;
 import com.rank.domain.review.model.ReviewTaskEntity;
 import com.rank.domain.review.shared.ReviewTaskStatusEnum;
 import com.rank.infrastructure.review.po.ReviewTaskPO;

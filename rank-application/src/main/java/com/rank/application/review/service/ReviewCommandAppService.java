@@ -7,7 +7,7 @@ import com.rank.application.review.command.SubmitReviewScoreCommand;
 import com.rank.application.review.factory.ReviewFactory;
 import com.rank.domain.common.exception.BizException;
 import com.rank.domain.review.event.ReviewTaskAssignEvent;
-import com.rank.domain.review.model.QuestionAnswerVO;
+import com.rank.domain.review.vo.QuestionAnswerVO;
 import com.rank.domain.review.model.ReviewTaskEntity;
 import com.rank.domain.review.repository.ReviewQuestionConfigRepository;
 import com.rank.domain.review.repository.ReviewRepository;

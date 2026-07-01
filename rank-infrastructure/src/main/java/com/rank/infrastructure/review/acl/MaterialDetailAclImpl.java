@@ -22,14 +22,20 @@ public class MaterialDetailAclImpl implements MaterialDetailAcl {
             return null;
         }
 
-        // 硬编码示例数据
-        MaterialDetailVO result = MaterialDetailVO.of(
-                materialId,
-                "示例材料标题",
-                "DOCTOR",
-                "{}"
-        );
-        log.info("[MaterialDetailAclImpl queryByMaterialId] 查询材料详情完成, materialId={}", materialId);
-        return result;
+        try {
+            // 当前为硬编码示例数据
+            // 接入真实 RPC/HTTP 调用后替换远程请求
+            MaterialDetailVO result = MaterialDetailVO.of(
+                    materialId,
+                    "示例材料标题",
+                    "DOCTOR",
+                    "{}"
+            );
+            log.info("[MaterialDetailAclImpl queryByMaterialId] 查询材料详情完成, materialId={}", materialId);
+            return result;
+        } catch (Exception e) {
+            log.error("[MaterialDetailAclImpl queryByMaterialId] 查询材料详情远程调用异常, materialId={}", materialId, e);
+            return null;
+        }
     }
 }

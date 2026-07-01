@@ -92,6 +92,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         try {
             Long total = reviewMapper.countPage(materialId, userId, scene, status);
             if (total == null || total == 0) {
+                log.info("[ReviewRepositoryImpl queryPage] 查询结果为空, materialId={}, userId={}, scene={}, status={}",
+                        materialId, userId, scene, status);
                 return PageResult.empty(pageNo, pageSize);
             }
             int offset = (pageNo - 1) * pageSize;
@@ -99,7 +101,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             List<ReviewTaskEntity> records = poListToEntities(poList);
             return new PageResult<>(total, pageNo, pageSize, records);
         } catch (Exception e) {
-            log.error("[ReviewRepositoryImpl queryPage] 分页查询异常", e);
+            log.error("[ReviewRepositoryImpl queryPage] 分页查询异常, materialId={}, userId={}, scene={}",
+                    materialId, userId, scene, e);
             return PageResult.empty(pageNo, pageSize);
         }
     }
@@ -109,6 +112,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         try {
             Long total = reviewMapper.countPageByUserId(userId, status);
             if (total == null || total == 0) {
+                log.info("[ReviewRepositoryImpl queryPageByUserId] 查询结果为空, userId={}, status={}",
+                        userId, status);
                 return PageResult.empty(pageNo, pageSize);
             }
             int offset = (pageNo - 1) * pageSize;
