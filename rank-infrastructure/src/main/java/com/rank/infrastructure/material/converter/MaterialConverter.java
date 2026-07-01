@@ -58,7 +58,7 @@ public class MaterialConverter {
     /**
      * 草稿状态枚举转数据库字符串
      */
-    private String mapDraftStatusToDbStr(MaterialDraftStatusEnum status) {
+    private static String mapDraftStatusToDbStr(MaterialDraftStatusEnum status) {
         if (status == null) {
             return null;
         }
@@ -68,7 +68,7 @@ public class MaterialConverter {
     /**
      * 审核状态枚举转数据库字符串
      */
-    private String mapAuditStatusToDbStr(MaterialAuditStatusEnum status) {
+    private static String mapAuditStatusToDbStr(MaterialAuditStatusEnum status) {
         if (status == null) {
             return null;
         }

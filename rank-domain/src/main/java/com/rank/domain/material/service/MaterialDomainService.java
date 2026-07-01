@@ -35,8 +35,10 @@ public class MaterialDomainService {
         try {
             Long subjectId = Long.parseLong(auditSubjectId);
             // signScene固定为DOCTOR，因为材料提报只面向医生榜
+            log.info("[MaterialDomainService checkCanOperateMaterial] 查询报名记录, scene=DOCTOR, subjectId={}", subjectId);
             try {
                 signRepository.queryBySceneSubject("DOCTOR", subjectId);
+                log.info("[MaterialDomainService checkCanOperateMaterial] 报名记录查询成功, subjectId={}", subjectId);
             } catch (Exception e) {
                 log.error("[MaterialDomainService checkCanOperateMaterial] 报名域不可用, 跳过报名记录校验, auditSubjectId={}", auditSubjectId, e);
                 // 报名域不可用时放行，不阻断材料操作

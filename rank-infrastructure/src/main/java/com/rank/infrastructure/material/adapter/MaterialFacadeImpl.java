@@ -1,4 +1,4 @@
-package com.rank.application.material.facade;
+package com.rank.infrastructure.material.adapter;
 
 import com.alibaba.fastjson.JSON;
 import com.rank.api.common.Response;

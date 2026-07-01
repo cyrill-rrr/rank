@@ -74,7 +74,26 @@ public class MaterialRepositoryImpl implements MaterialRepository {
             if (po == null) {
                 return null;
             }
-            return materialConverter.toEntity(po);
+            // Converter只做字段映射
+            MaterialEntity entity = materialConverter.toEntity(po);
+            if (entity == null) {
+                return null;
+            }
+            // RepositoryImpl负责将JSON解析为领域对象
+            AbstractMaterialContent draftContent = parseJson(po.getMaterialScene(), po.getDraftMaterialJsonStr(), strategies);
+            AbstractMaterialContent materialContent = parseJson(po.getMaterialScene(), po.getMaterialJsonStr(), strategies);
+
+            entity.setMaterialScene(po.getMaterialScene());
+            entity.setAuditSubjectId(po.getAuditSubjectId());
+            entity.setHasDraft(mapDbStrToDraftStatus(po.getHasDraft()));
+            entity.setAuditStatus(mapDbStrToAuditStatus(po.getAuditStatus()));
+            entity.setDraftMaterialContent(draftContent);
+            entity.setMaterialContent(materialContent);
+            entity.setUapUniqueId(po.getUapUniqueId());
+            entity.setRejectReason(po.getRejectReason());
+            entity.setCreatedTime(po.getCreatedTime());
+            entity.setUpdatedTime(po.getUpdatedTime());
+            return entity;
         } catch (Exception e) {
             log.error("[MaterialRepositoryImpl findByUapUniqueId] 按uapUniqueId查询异常, uapUniqueId={}",
                     uapUniqueId, e);

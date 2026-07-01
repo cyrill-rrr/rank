@@ -16,6 +16,8 @@ import com.rank.domain.material.vo.MaterialConfigVO;
 import com.rank.domain.material.vo.UapAuditInfoVO;
 import com.rank.domain.material.vo.UapAuditRequest;
 import com.rank.domain.material.vo.UapAuditResult;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -147,9 +149,13 @@ public class MaterialCommandAppService {
 
         // 调UAP审核
         UapAuditRequest auditRequest = strategy.buildUapAuditRequest(content, config);
+        log.info("[MaterialCommandAppService handleSubmitAudit] 调用UAP审核, template={}, dataJson={}",
+                auditRequest.getTemplate(), auditRequest.getDataJson());
         UapAuditResult auditResult;
         try {
             auditResult = uapAuditRepository.submitAudit(auditRequest);
+            log.info("[MaterialCommandAppService handleSubmitAudit] UAP审核返回, isSuccess={}, uapUniqueId={}",
+                    auditResult.isSuccess(), auditResult.getUapUniqueId());
         } catch (Exception e) {
             log.error("[MaterialCommandAppService handleSubmitAudit] UAP审核调用异常, materialId={}", entity.getId(), e);
             // UAP失败时DB保持HAS_DRAFT+PENDING_SUBMIT，返回materialId
@@ -195,7 +201,7 @@ public class MaterialCommandAppService {
         try {
             String passageJson = auditInfo.getPassageJson();
             if (passageJson != null && !passageJson.trim().isEmpty()) {
-                com.alibaba.fastjson.JSONObject passage = com.alibaba.fastjson.JSON.parseObject(passageJson);
+                JSONObject passage = JSON.parseObject(passageJson);
                 String passageMaterialScene = passage.getString("materialScene");
                 String passageAuditSubjectId = passage.getString("auditSubjectId");
                 if (passageMaterialScene != null && !passageMaterialScene.equals(entity.getMaterialScene())) {
