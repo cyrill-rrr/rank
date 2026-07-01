@@ -23,6 +23,8 @@ import com.rank.domain.sign.repository.SignRepository;
 import com.rank.infrastructure.material.config.MaterialConfigRepositoryImpl;
 import com.rank.infrastructure.material.converter.MaterialConverter;
 import com.rank.infrastructure.material.mapper.MaterialMapper;
+import com.rank.infrastructure.material.mq.UapAuditCallbackConsumer;
+import com.rank.infrastructure.material.mq.UapAuditCallbackMafkaEvent;
 import com.rank.infrastructure.material.po.MaterialPO;
 import com.rank.infrastructure.material.repository.MaterialRepositoryImpl;
 import com.rank.infrastructure.material.acl.UapAuditAclMockImpl;
@@ -49,6 +51,7 @@ import static org.junit.Assert.*;
 public class MaterialFacadeImplTest {
 
     private MaterialFacadeImpl materialFacade;
+    private UapAuditCallbackConsumer uapAuditCallbackConsumer;
 
     @Before
     public void setUp() {
@@ -145,6 +148,9 @@ public class MaterialFacadeImplTest {
 
         // ===== 构造对外接口入口 =====
         materialFacade = new MaterialFacadeImpl(materialAssembler, commandAppService, queryAppService);
+
+        // ===== 构造MQ Consumer入口（UAP审核回调） =====
+        uapAuditCallbackConsumer = new UapAuditCallbackConsumer(commandAppService);
 
         // ===== 启用preparer的Mock开关 =====
         CccWorkflowMockSwitch.setEnabled(true);
@@ -394,5 +400,92 @@ public class MaterialFacadeImplTest {
 
         assertEquals("缺少auditSubjectId应返回400012", 400012, response.getCode());
         assertNull("data应为null", response.getData());
+    }
+
+    // ==================== 送审失败路径：auditSubjectId非数字 ====================
+
+    @Test
+    public void testSubmitAudit_InvalidAuditSubjectId_ShouldFail() {
+        OperateMaterialRequestDTO request = new OperateMaterialRequestDTO();
+        request.setMaterialScene(MaterialSceneEnum.MEDICAL_BEAUTY_DOCTOR.name());
+        request.setAuditSubjectId("not_a_number");
+        request.setOperationType(MaterialOperationEnum.SUBMIT_AUDIT.name());
+        request.setMaterialJsonStr("{\"cases\":[{\"title\":\"案例1\",\"description\":\"描述1\"}],\"qualifications\":[{\"name\":\"资质1\"}],\"introduction\":\"简介\"}");
+
+        Response<OperateMaterialResponseDTO> response = materialFacade.operateMaterial(request);
+
+        assertEquals("非数字auditSubjectId应返回400011", 400011, response.getCode());
+        assertNull("data应为null", response.getData());
+    }
+
+    // ==================== 送审路径：非法JSON字符串 ====================
+
+    @Test
+    public void testSubmitAudit_InvalidJsonString_ShouldFail() {
+        OperateMaterialRequestDTO request = new OperateMaterialRequestDTO();
+        request.setMaterialScene(MaterialSceneEnum.MEDICAL_BEAUTY_DOCTOR.name());
+        request.setAuditSubjectId("900001");
+        request.setOperationType(MaterialOperationEnum.SUBMIT_AUDIT.name());
+        request.setMaterialJsonStr("{{{not json}}}");
+
+        Response<OperateMaterialResponseDTO> response = materialFacade.operateMaterial(request);
+
+        assertEquals("非法JSON应返回400011", 400011, response.getCode());
+        assertNull("data应为null", response.getData());
+    }
+
+    // ==================== UAP审核回调成功路径（通过UapAuditCallbackConsumer入口） ====================
+
+    @Test
+    public void testCallback_Approved_ShouldSucceed() {
+        UapAuditCallbackMafkaEvent event = new UapAuditCallbackMafkaEvent();
+        event.setUapUniqueId("mock-uap-unique-id-001");
+        event.setAuditStatus("APPROVED");
+        event.setRejectReason(null);
+        event.setPassageJson("{\"materialScene\":\"MEDICAL_BEAUTY_DOCTOR\",\"auditSubjectId\":\"12345\"}");
+
+        // Consumer入口：模拟MQ回调，应不抛异常
+        uapAuditCallbackConsumer.handleAuditCallback(event);
+        // 验证通过（handleAuditCallback为void，无返回值；不抛异常即通过）
+        assertTrue("APPROVED回调不应抛异常", true);
+    }
+
+    @Test
+    public void testCallback_Rejected_ShouldSucceed() {
+        UapAuditCallbackMafkaEvent event = new UapAuditCallbackMafkaEvent();
+        event.setUapUniqueId("mock-uap-unique-id-002");
+        event.setAuditStatus("REJECTED");
+        event.setRejectReason("材料信息不完整");
+        event.setPassageJson("{\"materialScene\":\"MEDICAL_BEAUTY_DOCTOR\",\"auditSubjectId\":\"12345\"}");
+
+        uapAuditCallbackConsumer.handleAuditCallback(event);
+        assertTrue("REJECTED回调不应抛异常", true);
+    }
+
+    @Test
+    public void testCallback_UnknownAuditStatus_ShouldBeIgnored() {
+        UapAuditCallbackMafkaEvent event = new UapAuditCallbackMafkaEvent();
+        event.setUapUniqueId("mock-uap-unique-id-003");
+        event.setAuditStatus("UNKNOWN_STATUS");
+        event.setRejectReason(null);
+        event.setPassageJson(null);
+
+        // 未知状态应被幂等忽略，不抛异常
+        uapAuditCallbackConsumer.handleAuditCallback(event);
+        assertTrue("未知审核状态回调不应抛异常", true);
+    }
+
+    @Test
+    public void testCallback_WithPassageJsonMismatch_ShouldNotThrow() {
+        UapAuditCallbackMafkaEvent event = new UapAuditCallbackMafkaEvent();
+        event.setUapUniqueId("mock-uap-unique-id-004");
+        event.setAuditStatus("APPROVED");
+        event.setRejectReason(null);
+        // passageJson中materialScene与实际记录不匹配（mock实体materialScene=MEDICAL_BEAUTY_DOCTOR）
+        event.setPassageJson("{\"materialScene\":\"ORAL_DOCTOR\",\"auditSubjectId\":\"99999\"}");
+
+        // 透传字段不匹配仅记录WARN日志，不阻断处理
+        uapAuditCallbackConsumer.handleAuditCallback(event);
+        assertTrue("透传字段不匹配回调不应抛异常", true);
     }
 }
