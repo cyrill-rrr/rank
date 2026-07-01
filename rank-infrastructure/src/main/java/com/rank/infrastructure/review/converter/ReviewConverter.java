@@ -89,6 +89,7 @@ public class ReviewConverter {
 
     /**
      * List<QuestionAnswerVO> 转 JSON 字符串
+     * 序列化失败时向上抛出 RuntimeException，防止已打分评审单的作答数据被静默覆盖丢失。
      */
     private String serializeQuestionAnswers(List<QuestionAnswerVO> list) {
         if (CollectionUtils.isEmpty(list)) {
@@ -97,8 +98,8 @@ public class ReviewConverter {
         try {
             return objectMapper.writeValueAsString(list);
         } catch (IOException e) {
-            log.error("[ReviewConverter serializeQuestionAnswers] JSON序列化失败", e);
-            return "[]";
+            log.error("[ReviewConverter serializeQuestionAnswers] JSON序列化失败, list={}", list, e);
+            throw new RuntimeException("questionAnswerJsonStr序列化异常", e);
         }
     }
 

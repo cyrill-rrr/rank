@@ -34,7 +34,7 @@ public class MaterialDetailAclImpl implements MaterialDetailAcl {
             log.info("[MaterialDetailAclImpl queryByMaterialId] 查询材料详情完成, materialId={}", materialId);
             return result;
         } catch (Exception e) {
-            log.error("[MaterialDetailAclImpl queryByMaterialId] 查询材料详情远程调用异常, materialId={}", materialId, e);
+            log.error("[MaterialDetailAclImpl queryByMaterialId] 材料详情查询异常, materialId={}", materialId, e);
             return null;
         }
     }
