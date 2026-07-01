@@ -3,7 +3,6 @@ package com.rank.infrastructure.review.config;
 import com.rank.domain.review.repository.ReviewTemplateConfigRepository;
 import com.rank.domain.review.vo.QuestionGroupVO;
 import com.rank.domain.review.vo.ReviewTemplateVO;
-import com.rank.infrastructure.common.CccWorkflowMockSwitch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -21,15 +20,6 @@ public class ReviewTemplateConfigRepositoryImpl implements ReviewTemplateConfigR
     @Override
     public ReviewTemplateVO findByScene(String scene) {
         log.info("[ReviewTemplateConfigRepositoryImpl findByScene] 读取模板配置, scene={}", scene);
-        if (CccWorkflowMockSwitch.isEnabled()) {
-            ReviewTemplateVO mockResult = ReviewTemplateVO.of(
-                    scene != null ? scene : "MEDICAL_BEAUTY_DOCTOR",
-                    Arrays.asList("Q001", "Q002"),
-                    Collections.<QuestionGroupVO>emptyList()
-            );
-            log.info("ccc-workflow-mock-subagent [ReviewTemplateConfigRepositoryImpl findByScene] mock return result={}", mockResult);
-            return mockResult;
-        }
         if (scene == null || scene.trim().isEmpty()) {
             log.error("[ReviewTemplateConfigRepositoryImpl findByScene] scene为空", new IllegalArgumentException("scene为空"));
             return null;

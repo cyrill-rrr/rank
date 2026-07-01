@@ -2,7 +2,6 @@ package com.rank.infrastructure.review.acl;
 
 import com.rank.domain.review.repository.ReviewQuestionConfigRepository;
 import com.rank.domain.review.vo.QuestionConfigVO;
-import com.rank.infrastructure.common.CccWorkflowMockSwitch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -37,19 +36,6 @@ public class ReviewQuestionConfigAcl implements ReviewQuestionConfigRepository {
     @Override
     public List<QuestionConfigVO> queryQuestionConfig(List<String> questionIdList) {
         log.info("[ReviewQuestionConfigAcl queryQuestionConfig] 查询海马配置, questionIdList={}", questionIdList);
-        if (CccWorkflowMockSwitch.isEnabled()) {
-            List<QuestionConfigVO> mockResult = new ArrayList<QuestionConfigVO>();
-            if (questionIdList != null) {
-                for (String qid : questionIdList) {
-                    mockResult.add(QuestionConfigVO.of(qid, "mock题干", true, "[1,2,3,4,5,6,7,8,9,10]"));
-                }
-            }
-            if (mockResult.isEmpty()) {
-                mockResult.add(QuestionConfigVO.of("Q001", "mock题干", true, "[1,2,3,4,5,6,7,8,9,10]"));
-            }
-            log.info("ccc-workflow-mock-subagent [ReviewQuestionConfigAcl queryQuestionConfig] mock return resultSize={}", mockResult.size());
-            return mockResult;
-        }
         if (CollectionUtils.isEmpty(questionIdList)) {
             return Collections.emptyList();
         }

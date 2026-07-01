@@ -2,7 +2,6 @@ package com.rank.infrastructure.review.acl;
 
 import com.rank.domain.review.repository.MaterialDetailAcl;
 import com.rank.domain.review.vo.MaterialDetailVO;
-import com.rank.infrastructure.common.CccWorkflowMockSwitch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,16 +17,6 @@ public class MaterialDetailAclImpl implements MaterialDetailAcl {
     @Override
     public MaterialDetailVO queryByMaterialId(Long materialId) {
         log.info("[MaterialDetailAclImpl queryByMaterialId] 查询材料详情, materialId={}", materialId);
-        if (CccWorkflowMockSwitch.isEnabled()) {
-            MaterialDetailVO mockResult = MaterialDetailVO.of(
-                    materialId != null ? materialId : 100001L,
-                    "mock材料标题",
-                    "DOCTOR",
-                    "{\"materialId\": " + (materialId != null ? materialId : 100001L) + "}"
-            );
-            log.info("ccc-workflow-mock-subagent [MaterialDetailAclImpl queryByMaterialId] mock return result={}", mockResult);
-            return mockResult;
-        }
         if (materialId == null) {
             log.error("[MaterialDetailAclImpl queryByMaterialId] materialId为空", new IllegalArgumentException("materialId为空"));
             return null;

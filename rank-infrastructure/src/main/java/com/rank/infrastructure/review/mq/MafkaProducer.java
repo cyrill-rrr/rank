@@ -2,7 +2,6 @@ package com.rank.infrastructure.review.mq;
 
 import com.rank.domain.review.event.ReviewTaskAssignEvent;
 import com.rank.domain.review.repository.ReviewTaskAssignProducer;
-import com.rank.infrastructure.common.CccWorkflowMockSwitch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -27,11 +26,6 @@ public class MafkaProducer implements ReviewTaskAssignProducer {
     public void send(Long materialId, Long userId, String scene, Long operatorUserId) {
         log.info("[MafkaProducer send] 发送分单消息, materialId={}, userId={}, scene={}, operatorUserId={}",
                 materialId, userId, scene, operatorUserId);
-        if (CccWorkflowMockSwitch.isEnabled()) {
-            log.info("ccc-workflow-mock-subagent [MafkaProducer send] mock return, materialId={}, userId={}, scene={}",
-                    materialId, userId, scene);
-            return;
-        }
         // 桥接：通过 Spring Event 发布，由 ReviewTaskAssignConsumer (@EventListener) 消费
         eventPublisher.publishEvent(new ReviewTaskAssignEvent(
                 materialId, userId, scene, operatorUserId));
