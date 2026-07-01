@@ -3,6 +3,7 @@ package com.rank.infrastructure.review.repository;
 import com.rank.domain.common.PageResult;
 import com.rank.domain.review.model.ReviewTaskEntity;
 import com.rank.domain.review.repository.ReviewRepository;
+import com.rank.infrastructure.common.CccWorkflowMockSwitch;
 import com.rank.infrastructure.review.converter.ReviewConverter;
 import com.rank.infrastructure.review.mapper.ReviewMapper;
 import com.rank.infrastructure.review.po.ReviewTaskPO;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,18 +33,47 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public ReviewTaskEntity findByBizKey(Long materialId, Long userId, String scene) {
+        log.info("[ReviewRepositoryImpl findByBizKey] materialId={}, userId={}, scene={}", materialId, userId, scene);
+        if (CccWorkflowMockSwitch.isEnabled()) {
+            log.info("ccc-workflow-mock-subagent [ReviewRepositoryImpl findByBizKey] mock return null, materialId={}, userId={}, scene={}",
+                    materialId, userId, scene);
+            return null;
+        }
         ReviewTaskPO po = reviewMapper.findByBizKey(materialId, userId, scene);
-        return reviewConverter.toEntity(po);
+        ReviewTaskEntity result = reviewConverter.toEntity(po);
+        log.info("[ReviewRepositoryImpl findByBizKey] result={}", result);
+        return result;
     }
 
     @Override
     public ReviewTaskEntity findById(Long id) {
+        log.info("[ReviewRepositoryImpl findById] id={}", id);
+        if (CccWorkflowMockSwitch.isEnabled()) {
+            ReviewTaskEntity mockResult = new ReviewTaskEntity(
+                    id != null ? id : 100001L,
+                    200001L,
+                    "MEDICAL_BEAUTY_DOCTOR"
+            );
+            mockResult.setId(id);
+            log.info("ccc-workflow-mock-subagent [ReviewRepositoryImpl findById] mock return result={}", mockResult);
+            return mockResult;
+        }
         ReviewTaskPO po = reviewMapper.findById(id);
-        return reviewConverter.toEntity(po);
+        ReviewTaskEntity result = reviewConverter.toEntity(po);
+        log.info("[ReviewRepositoryImpl findById] result={}", result);
+        return result;
     }
 
     @Override
     public void save(ReviewTaskEntity entity) {
+        log.info("[ReviewRepositoryImpl save] entity materialId={}, userId={}, scene={}",
+                entity != null ? entity.getMaterialId() : null,
+                entity != null ? entity.getUserId() : null,
+                entity != null ? entity.getScene() : null);
+        if (CccWorkflowMockSwitch.isEnabled()) {
+            log.info("ccc-workflow-mock-subagent [ReviewRepositoryImpl save] mock return");
+            return;
+        }
         try {
             ReviewTaskPO po = reviewConverter.toPO(entity);
             if (po == null) {
@@ -67,8 +98,15 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public int deleteByUserId(Long userId) {
+        log.info("[ReviewRepositoryImpl deleteByUserId] userId={}", userId);
+        if (CccWorkflowMockSwitch.isEnabled()) {
+            log.info("ccc-workflow-mock-subagent [ReviewRepositoryImpl deleteByUserId] mock return affectedRows=1");
+            return 1;
+        }
         try {
-            return reviewMapper.deleteByUserId(userId);
+            int result = reviewMapper.deleteByUserId(userId);
+            log.info("[ReviewRepositoryImpl deleteByUserId] affectedRows={}", result);
+            return result;
         } catch (Exception e) {
             log.error("[ReviewRepositoryImpl deleteByUserId] 删除评审单异常, userId={}", userId, e);
             throw e;
@@ -78,6 +116,20 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     @Override
     public PageResult<ReviewTaskEntity> queryPage(Long materialId, Long userId, String scene, String status,
                                                    int pageNo, int pageSize) {
+        log.info("[ReviewRepositoryImpl queryPage] materialId={}, userId={}, scene={}, status={}, pageNo={}, pageSize={}",
+                materialId, userId, scene, status, pageNo, pageSize);
+        if (CccWorkflowMockSwitch.isEnabled()) {
+            ReviewTaskEntity mockEntity = new ReviewTaskEntity(
+                    materialId != null ? materialId : 100001L,
+                    userId != null ? userId : 200001L,
+                    scene != null ? scene : "MEDICAL_BEAUTY_DOCTOR"
+            );
+            mockEntity.setId(300001L);
+            List<ReviewTaskEntity> mockRecords = new ArrayList<ReviewTaskEntity>();
+            mockRecords.add(mockEntity);
+            log.info("ccc-workflow-mock-subagent [ReviewRepositoryImpl queryPage] mock return, total=1");
+            return new PageResult<ReviewTaskEntity>(1L, pageNo, pageSize, mockRecords);
+        }
         try {
             Long total = reviewMapper.countPage(materialId, userId, scene, status);
             if (total == null || total == 0) {
@@ -88,7 +140,9 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             int offset = (pageNo - 1) * pageSize;
             List<ReviewTaskPO> poList = reviewMapper.queryPage(materialId, userId, scene, status, offset, pageSize);
             List<ReviewTaskEntity> records = poListToEntities(poList);
-            return new PageResult<>(total, pageNo, pageSize, records);
+            PageResult<ReviewTaskEntity> result = new PageResult<ReviewTaskEntity>(total, pageNo, pageSize, records);
+            log.info("[ReviewRepositoryImpl queryPage] total={}, pageNo={}, pageSize={}", total, pageNo, pageSize);
+            return result;
         } catch (Exception e) {
             log.error("[ReviewRepositoryImpl queryPage] 分页查询异常, materialId={}, userId={}, scene={}",
                     materialId, userId, scene, e);
@@ -98,6 +152,16 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public PageResult<ReviewTaskEntity> queryPageByUserId(Long userId, String status, int pageNo, int pageSize) {
+        log.info("[ReviewRepositoryImpl queryPageByUserId] userId={}, status={}, pageNo={}, pageSize={}",
+                userId, status, pageNo, pageSize);
+        if (CccWorkflowMockSwitch.isEnabled()) {
+            ReviewTaskEntity mockEntity = new ReviewTaskEntity(100001L, userId, "MEDICAL_BEAUTY_DOCTOR");
+            mockEntity.setId(300001L);
+            List<ReviewTaskEntity> mockRecords = new ArrayList<ReviewTaskEntity>();
+            mockRecords.add(mockEntity);
+            log.info("ccc-workflow-mock-subagent [ReviewRepositoryImpl queryPageByUserId] mock return, total=1");
+            return new PageResult<ReviewTaskEntity>(1L, pageNo, pageSize, mockRecords);
+        }
         try {
             Long total = reviewMapper.countPageByUserId(userId, status);
             if (total == null || total == 0) {
@@ -108,7 +172,9 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             int offset = (pageNo - 1) * pageSize;
             List<ReviewTaskPO> poList = reviewMapper.queryPageByUserId(userId, status, offset, pageSize);
             List<ReviewTaskEntity> records = poListToEntities(poList);
-            return new PageResult<>(total, pageNo, pageSize, records);
+            PageResult<ReviewTaskEntity> result = new PageResult<ReviewTaskEntity>(total, pageNo, pageSize, records);
+            log.info("[ReviewRepositoryImpl queryPageByUserId] total={}, pageNo={}, pageSize={}", total, pageNo, pageSize);
+            return result;
         } catch (Exception e) {
             log.error("[ReviewRepositoryImpl queryPageByUserId] 按用户分页查询异常, userId={}", userId, e);
             throw e;
