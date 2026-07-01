@@ -46,8 +46,8 @@ public class MaterialRepositoryImpl implements MaterialRepository {
                 return null;
             }
             // RepositoryImpl负责将JSON解析为领域对象
-            AbstractMaterialContent draftContent = parseJson(materialScene, po.getDraftMaterialJsonStr());
-            AbstractMaterialContent materialContent = parseJson(materialScene, po.getMaterialJsonStr());
+            AbstractMaterialContent draftContent = parseJson(materialScene, po.getDraftMaterialJsonStr(), strategies);
+            AbstractMaterialContent materialContent = parseJson(materialScene, po.getMaterialJsonStr(), strategies);
 
             entity.setMaterialScene(po.getMaterialScene());
             entity.setAuditSubjectId(po.getAuditSubjectId());
@@ -86,10 +86,9 @@ public class MaterialRepositoryImpl implements MaterialRepository {
     public void saveOrUpdate(MaterialEntity materialEntity) {
         try {
             // 序列化材料内容为JSON
-            String draftJson = serializeContent(findStrategy(materialEntity.getMaterialScene()),
-                    materialEntity.getDraftMaterialContent());
-            String materialJson = serializeContent(findStrategy(materialEntity.getMaterialScene()),
-                    materialEntity.getMaterialContent());
+            MaterialSceneStrategy strategy = findStrategy(materialEntity.getMaterialScene(), strategies);
+            String draftJson = serializeContent(strategy, materialEntity.getDraftMaterialContent());
+            String materialJson = serializeContent(strategy, materialEntity.getMaterialContent());
 
             MaterialPO po = materialConverter.toPO(materialEntity, draftJson, materialJson);
             if (po == null) {
@@ -116,7 +115,8 @@ public class MaterialRepositoryImpl implements MaterialRepository {
     /**
      * 根据材料场景解析JSON字符串
      */
-    private AbstractMaterialContent parseJson(String materialScene, String jsonStr) {
+    private static AbstractMaterialContent parseJson(String materialScene, String jsonStr,
+                                                      List<MaterialSceneStrategy> strategies) {
         if (jsonStr == null) {
             return null;
         }
@@ -125,15 +125,15 @@ public class MaterialRepositoryImpl implements MaterialRepository {
                 return strategy.parse(jsonStr);
             }
         }
-        log.warn("[MaterialRepositoryImpl parseJson] 未找到材料场景策略, materialScene={}", materialScene);
+        log.error("[MaterialRepositoryImpl parseJson] 未找到材料场景策略, materialScene={}", materialScene);
         return null;
     }
 
     /**
      * 序列化材料内容为JSON字符串
      */
-    private String serializeContent(MaterialSceneStrategy strategy, AbstractMaterialContent content) {
-        if (content == null) {
+    private static String serializeContent(MaterialSceneStrategy strategy, AbstractMaterialContent content) {
+        if (content == null || strategy == null) {
             return null;
         }
         return strategy.toCurrentMaterialJson(content);
@@ -142,7 +142,7 @@ public class MaterialRepositoryImpl implements MaterialRepository {
     /**
      * 查找材料场景对应的策略
      */
-    private MaterialSceneStrategy findStrategy(String materialScene) {
+    private static MaterialSceneStrategy findStrategy(String materialScene, List<MaterialSceneStrategy> strategies) {
         if (strategies != null) {
             for (MaterialSceneStrategy strategy : strategies) {
                 if (strategy.supportScene().equals(materialScene)) {
@@ -156,7 +156,7 @@ public class MaterialRepositoryImpl implements MaterialRepository {
     /**
      * 数据库字符串转草稿状态枚举
      */
-    private MaterialDraftStatusEnum mapDbStrToDraftStatus(String dbStr) {
+    private static MaterialDraftStatusEnum mapDbStrToDraftStatus(String dbStr) {
         if (dbStr == null) {
             return MaterialDraftStatusEnum.NO_DRAFT;
         }
@@ -170,7 +170,7 @@ public class MaterialRepositoryImpl implements MaterialRepository {
     /**
      * 数据库字符串转审核状态枚举
      */
-    private MaterialAuditStatusEnum mapDbStrToAuditStatus(String dbStr) {
+    private static MaterialAuditStatusEnum mapDbStrToAuditStatus(String dbStr) {
         if (dbStr == null) {
             return null;
         }

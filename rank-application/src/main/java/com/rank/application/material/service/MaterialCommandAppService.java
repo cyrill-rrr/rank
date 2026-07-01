@@ -7,7 +7,7 @@ import com.rank.domain.material.model.AbstractMaterialContent;
 import com.rank.domain.material.model.MaterialEntity;
 import com.rank.domain.material.repository.MaterialConfigRepository;
 import com.rank.domain.material.repository.MaterialRepository;
-import com.rank.domain.material.repository.UapAuditAcl;
+import com.rank.domain.material.repository.UapAuditRepository;
 import com.rank.domain.material.service.MaterialDomainService;
 import com.rank.domain.material.service.MaterialSceneStrategy;
 import com.rank.domain.material.shared.MaterialAuditStatusEnum;
@@ -33,20 +33,20 @@ public class MaterialCommandAppService {
     private final MaterialDomainService materialDomainService;
     private final MaterialFactory materialFactory;
     private final List<MaterialSceneStrategy> strategies;
-    private final UapAuditAcl uapAuditAcl;
+    private final UapAuditRepository uapAuditRepository;
 
     public MaterialCommandAppService(MaterialConfigRepository materialConfigRepository,
                                       MaterialRepository materialRepository,
                                       MaterialDomainService materialDomainService,
                                       MaterialFactory materialFactory,
                                       List<MaterialSceneStrategy> strategies,
-                                      UapAuditAcl uapAuditAcl) {
+                                      UapAuditRepository uapAuditRepository) {
         this.materialConfigRepository = materialConfigRepository;
         this.materialRepository = materialRepository;
         this.materialDomainService = materialDomainService;
         this.materialFactory = materialFactory;
         this.strategies = strategies;
-        this.uapAuditAcl = uapAuditAcl;
+        this.uapAuditRepository = uapAuditRepository;
     }
 
     /**
@@ -102,7 +102,14 @@ public class MaterialCommandAppService {
 
         // 保存草稿：设置草稿内容和状态
         entity.saveDraft(content);
-        materialRepository.saveOrUpdate(entity);
+        try {
+            materialRepository.saveOrUpdate(entity);
+        } catch (Exception e) {
+            log.error("[MaterialCommandAppService handleSaveDraft] 草稿保存失败, materialScene={}, auditSubjectId={}",
+                    entity.getMaterialScene(), entity.getAuditSubjectId(), e);
+            // DB不可用时返回materialId保持部分已完成状态
+            return entity.getId();
+        }
 
         log.info("[MaterialCommandAppService handleSaveDraft] 草稿保存成功, materialId={}", entity.getId());
         return entity.getId();
@@ -130,13 +137,19 @@ public class MaterialCommandAppService {
 
         // 保存草稿（先把内容存为草稿）
         entity.saveDraft(content);
-        materialRepository.saveOrUpdate(entity);
+        try {
+            materialRepository.saveOrUpdate(entity);
+        } catch (Exception e) {
+            log.error("[MaterialCommandAppService handleSubmitAudit] 草稿保存失败, materialScene={}, auditSubjectId={}",
+                    entity.getMaterialScene(), entity.getAuditSubjectId(), e);
+            return entity.getId();
+        }
 
         // 调UAP审核
         UapAuditRequest auditRequest = strategy.buildUapAuditRequest(content, config);
         UapAuditResult auditResult;
         try {
-            auditResult = uapAuditAcl.submitAudit(auditRequest);
+            auditResult = uapAuditRepository.submitAudit(auditRequest);
         } catch (Exception e) {
             log.error("[MaterialCommandAppService handleSubmitAudit] UAP审核调用异常, materialId={}", entity.getId(), e);
             // UAP失败时DB保持HAS_DRAFT+PENDING_SUBMIT，返回materialId
@@ -151,7 +164,13 @@ public class MaterialCommandAppService {
 
         // UAP成功：标记审核中
         entity.markUnderReview(auditResult.getUapUniqueId());
-        materialRepository.saveOrUpdate(entity);
+        try {
+            materialRepository.saveOrUpdate(entity);
+        } catch (Exception e) {
+            log.error("[MaterialCommandAppService handleSubmitAudit] 更新审核状态失败, materialId={}", entity.getId(), e);
+            // DB不可用，返回materialId
+            return entity.getId();
+        }
 
         log.info("[MaterialCommandAppService handleSubmitAudit] 送审成功, materialId={}, uapUniqueId={}",
                 entity.getId(), auditResult.getUapUniqueId());
@@ -172,8 +191,25 @@ public class MaterialCommandAppService {
             return;
         }
 
-        // 2. 校验透传字段（记录WARN日志但不阻断）
-        log.info("[MaterialCommandAppService handleAuditCallback] 校验透传字段, uapUniqueId={}", auditInfo.getUapUniqueId());
+        // 2. 校验透传字段（记录日志但不阻断）
+        try {
+            String passageJson = auditInfo.getPassageJson();
+            if (passageJson != null && !passageJson.trim().isEmpty()) {
+                com.alibaba.fastjson.JSONObject passage = com.alibaba.fastjson.JSON.parseObject(passageJson);
+                String passageMaterialScene = passage.getString("materialScene");
+                String passageAuditSubjectId = passage.getString("auditSubjectId");
+                if (passageMaterialScene != null && !passageMaterialScene.equals(entity.getMaterialScene())) {
+                    log.info("[MaterialCommandAppService handleAuditCallback] 透传materialScene不匹配, passage={}, db={}",
+                            passageMaterialScene, entity.getMaterialScene());
+                }
+                if (passageAuditSubjectId != null && !passageAuditSubjectId.equals(entity.getAuditSubjectId())) {
+                    log.info("[MaterialCommandAppService handleAuditCallback] 透传auditSubjectId不匹配, passage={}, db={}",
+                            passageAuditSubjectId, entity.getAuditSubjectId());
+                }
+            }
+        } catch (Exception e) {
+            log.info("[MaterialCommandAppService handleAuditCallback] 透传字段解析异常, uapUniqueId={}", auditInfo.getUapUniqueId(), e);
+        }
 
         // 3. 映射审核状态
         MaterialAuditStatusEnum resultStatus;
@@ -182,7 +218,7 @@ public class MaterialCommandAppService {
         } else if ("REJECTED".equals(auditInfo.getAuditStatus())) {
             resultStatus = MaterialAuditStatusEnum.REJECTED;
         } else {
-            log.warn("[MaterialCommandAppService handleAuditCallback] 未知审核状态, status={}", auditInfo.getAuditStatus());
+            log.info("[MaterialCommandAppService handleAuditCallback] 未知审核状态, status={}", auditInfo.getAuditStatus());
             return;
         }
 

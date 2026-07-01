@@ -1,6 +1,6 @@
 package com.rank.infrastructure.material.acl;
 
-import com.rank.domain.material.repository.UapAuditAcl;
+import com.rank.domain.material.repository.UapAuditRepository;
 import com.rank.domain.material.vo.UapAuditRequest;
 import com.rank.domain.material.vo.UapAuditResult;
 import lombok.extern.slf4j.Slf4j;
@@ -9,12 +9,12 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 /**
- * UAP审核ACL Mock实现
- * 真实接入UAP RPC时替换为UapAuditAclImpl
+ * UAP审核仓储Mock实现
+ * 真实接入UAP RPC时替换为UapAuditRepositoryImpl
  */
 @Slf4j
 @Repository
-public class UapAuditAclMockImpl implements UapAuditAcl {
+public class UapAuditAclMockImpl implements UapAuditRepository {
 
     @Override
     public UapAuditResult submitAudit(UapAuditRequest request) {

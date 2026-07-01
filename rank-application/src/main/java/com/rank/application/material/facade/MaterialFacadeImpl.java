@@ -1,5 +1,6 @@
 package com.rank.application.material.facade;
 
+import com.alibaba.fastjson.JSON;
 import com.rank.api.common.Response;
 import com.rank.api.material.dto.OperateMaterialRequestDTO;
 import com.rank.api.material.dto.OperateMaterialResponseDTO;
@@ -60,13 +61,13 @@ public class MaterialFacadeImpl implements MaterialFacade {
             OperateMaterialResponseDTO response = materialAssembler.toOperateMaterialResponse(materialId);
             return Response.success(response);
         } catch (IllegalArgumentException e) {
-            log.error("[MaterialFacadeImpl operateMaterial] 参数校验失败, request={}", request, e);
+            log.error("[MaterialFacadeImpl operateMaterial] 参数校验失败, request={}", JSON.toJSONString(request), e);
             return Response.fail(400011, e.getMessage());
         } catch (BizException e) {
-            log.error("[MaterialFacadeImpl operateMaterial] 业务异常, request={}", request, e);
+            log.error("[MaterialFacadeImpl operateMaterial] 业务异常, request={}", JSON.toJSONString(request), e);
             return Response.fail(400011, e.getMessage());
         } catch (Exception e) {
-            log.error("[MaterialFacadeImpl operateMaterial] 材料操作异常, request={}", request, e);
+            log.error("[MaterialFacadeImpl operateMaterial] 材料操作异常, request={}", JSON.toJSONString(request), e);
             return Response.fail(400011, "材料操作失败");
         } finally {
             log.info("[MaterialFacadeImpl operateMaterial] 耗时:{}ms", System.currentTimeMillis() - start);
@@ -90,13 +91,13 @@ public class MaterialFacadeImpl implements MaterialFacade {
             QueryCurrentMaterialResponseDTO response = materialAssembler.toQueryCurrentMaterialResponse(result);
             return Response.success(response);
         } catch (IllegalArgumentException e) {
-            log.error("[MaterialFacadeImpl queryCurrentMaterial] 参数校验失败, request={}", request, e);
+            log.error("[MaterialFacadeImpl queryCurrentMaterial] 参数校验失败, request={}", JSON.toJSONString(request), e);
             return Response.fail(400012, e.getMessage());
         } catch (BizException e) {
-            log.error("[MaterialFacadeImpl queryCurrentMaterial] 业务异常, request={}", request, e);
+            log.error("[MaterialFacadeImpl queryCurrentMaterial] 业务异常, request={}", JSON.toJSONString(request), e);
             return Response.fail(400012, e.getMessage());
         } catch (Exception e) {
-            log.error("[MaterialFacadeImpl queryCurrentMaterial] 查询材料异常, request={}", request, e);
+            log.error("[MaterialFacadeImpl queryCurrentMaterial] 查询材料异常, request={}", JSON.toJSONString(request), e);
             return Response.fail(400012, "查询材料信息失败");
         } finally {
             log.info("[MaterialFacadeImpl queryCurrentMaterial] 耗时:{}ms", System.currentTimeMillis() - start);

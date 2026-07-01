@@ -9,8 +9,11 @@ import java.util.Date;
  */
 public class MaterialConfigVO {
 
+    /** 窗口期开始时间 */
     private final Date windowStartTime;
+    /** 窗口期结束时间 */
     private final Date windowEndTime;
+    /** UAP审核模板标识 */
     private final String uapTemplate;
 
     public MaterialConfigVO(Date windowStartTime, Date windowEndTime, String uapTemplate) {
@@ -36,11 +39,11 @@ public class MaterialConfigVO {
      */
     public void checkCanOperate() {
         if (windowStartTime == null || windowEndTime == null) {
-            throw com.rank.domain.common.exception.BizException.illegalState("材料窗口期配置不完整");
+            throw BizException.illegalState("材料窗口期配置不完整");
         }
         Date now = new Date();
         if (now.before(windowStartTime) || now.after(windowEndTime)) {
-            throw com.rank.domain.common.exception.BizException.invalidParam("当前不在材料提报窗口期内");
+            throw BizException.invalidParam("当前不在材料提报窗口期内");
         }
     }
 }

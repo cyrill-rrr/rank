@@ -15,16 +15,27 @@ import java.util.Date;
  */
 public class MaterialEntity {
 
+    /** 材料记录主键 */
     private Long id;
+    /** 材料场景 */
     private String materialScene;
+    /** 审计主体ID（techId） */
     private String auditSubjectId;
+    /** 是否有草稿 */
     private MaterialDraftStatusEnum hasDraft;
+    /** 审核状态 */
     private MaterialAuditStatusEnum auditStatus;
+    /** 草稿材料内容 */
     private AbstractMaterialContent draftMaterialContent;
+    /** 正式材料内容 */
     private AbstractMaterialContent materialContent;
+    /** UAP审核唯一标识 */
     private String uapUniqueId;
+    /** 驳回原因 */
     private String rejectReason;
+    /** 创建时间 */
     private Date createdTime;
+    /** 更新时间 */
     private Date updatedTime;
 
     public MaterialEntity() {

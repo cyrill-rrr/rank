@@ -43,6 +43,8 @@ public class MaterialQueryAppService {
 
         // 2. 无材料返回null
         if (entity == null || entity.getId() == null) {
+            log.info("[MaterialQueryAppService queryCurrentMaterial] 未找到材料记录, materialScene={}, auditSubjectId={}",
+                    qry.getMaterialScene(), qry.getAuditSubjectId());
             return null;
         }
 
@@ -62,7 +64,7 @@ public class MaterialQueryAppService {
         }
 
         // 4. 序列化为JSON
-        String materialJsonStr = serializeContent(qry.getMaterialScene(), displayContent);
+        String materialJsonStr = serializeContent(qry.getMaterialScene(), displayContent, strategies);
 
         // 5. 组装结果
         return new CurrentMaterialResult(
@@ -77,7 +79,8 @@ public class MaterialQueryAppService {
     /**
      * 序列化材料内容为JSON字符串
      */
-    private String serializeContent(String materialScene, AbstractMaterialContent content) {
+    private static String serializeContent(String materialScene, AbstractMaterialContent content,
+                                            List<MaterialSceneStrategy> strategies) {
         if (content == null) {
             return null;
         }

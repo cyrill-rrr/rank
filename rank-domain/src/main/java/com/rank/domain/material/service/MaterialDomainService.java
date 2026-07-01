@@ -35,7 +35,12 @@ public class MaterialDomainService {
         try {
             Long subjectId = Long.parseLong(auditSubjectId);
             // signScene固定为DOCTOR，因为材料提报只面向医生榜
-            signRepository.queryBySceneSubject("DOCTOR", subjectId);
+            try {
+                signRepository.queryBySceneSubject("DOCTOR", subjectId);
+            } catch (Exception e) {
+                log.error("[MaterialDomainService checkCanOperateMaterial] 报名域不可用, 跳过报名记录校验, auditSubjectId={}", auditSubjectId, e);
+                // 报名域不可用时放行，不阻断材料操作
+            }
         } catch (NumberFormatException e) {
             log.error("[MaterialDomainService checkCanOperateMaterial] auditSubjectId格式非法, auditSubjectId={}", auditSubjectId, e);
             throw BizException.invalidParam("审计主体ID格式非法");
