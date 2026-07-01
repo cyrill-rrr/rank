@@ -1,4 +1,4 @@
-package com.rank.infrastructure.review.client;
+package com.rank.infrastructure.review.acl;
 
 import com.rank.domain.review.repository.ReviewQuestionConfigRepository;
 import com.rank.domain.review.vo.QuestionConfigVO;
@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 评审问题配置客户端（模拟海马/Appkit）。
+ * 评审问题配置防腐层（模拟海马/Appkit）。
  * 实现 ReviewQuestionConfigRepository 接口。
  * 本期不接入真实海马，返回硬编码示例数据。
  */
 @Slf4j
 @Component
-public class ReviewQuestionConfigClient implements ReviewQuestionConfigRepository {
+public class ReviewQuestionConfigAcl implements ReviewQuestionConfigRepository {
 
     /**
      * 模拟海马配置数据：问题ID -> QuestionConfigVO
@@ -35,7 +35,7 @@ public class ReviewQuestionConfigClient implements ReviewQuestionConfigRepositor
 
     @Override
     public List<QuestionConfigVO> queryQuestionConfig(List<String> questionIdList) {
-        log.info("[ReviewQuestionConfigClient queryQuestionConfig] 查询海马配置, questionIdList={}", questionIdList);
+        log.info("[ReviewQuestionConfigAcl queryQuestionConfig] 查询海马配置, questionIdList={}", questionIdList);
         if (CollectionUtils.isEmpty(questionIdList)) {
             return Collections.emptyList();
         }
@@ -46,19 +46,19 @@ public class ReviewQuestionConfigClient implements ReviewQuestionConfigRepositor
             if (config != null) {
                 result.add(config);
             } else {
-                log.error("[ReviewQuestionConfigClient queryQuestionConfig] 问题ID配置缺失, questionId={}",
+                log.error("[ReviewQuestionConfigAcl queryQuestionConfig] 问题ID配置缺失, questionId={}",
                         qid, new IllegalStateException("问题ID配置缺失"));
             }
         }
 
         // 如果任何问题ID缺失，整体返回失败
         if (result.size() != questionIdList.size()) {
-            log.error("[ReviewQuestionConfigClient queryQuestionConfig] 部分问题配置缺失, requested={}, found={}",
+            log.error("[ReviewQuestionConfigAcl queryQuestionConfig] 部分问题配置缺失, requested={}, found={}",
                     questionIdList.size(), result.size(), new IllegalStateException("海马配置不完整"));
             return Collections.emptyList();
         }
 
-        log.info("[ReviewQuestionConfigClient queryQuestionConfig] 查询完成, questionIdListSize={}, resultSize={}",
+        log.info("[ReviewQuestionConfigAcl queryQuestionConfig] 查询完成, questionIdListSize={}, resultSize={}",
                 questionIdList.size(), result.size());
         return result;
     }

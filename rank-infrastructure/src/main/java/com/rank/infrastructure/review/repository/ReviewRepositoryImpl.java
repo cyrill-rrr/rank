@@ -31,25 +31,14 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public ReviewTaskEntity findByBizKey(Long materialId, Long userId, String scene) {
-        try {
-            ReviewTaskPO po = reviewMapper.findByBizKey(materialId, userId, scene);
-            return reviewConverter.toEntity(po);
-        } catch (Exception e) {
-            log.error("[ReviewRepositoryImpl findByBizKey] 按业务键查询异常, materialId={}, userId={}, scene={}",
-                    materialId, userId, scene, e);
-            return null;
-        }
+        ReviewTaskPO po = reviewMapper.findByBizKey(materialId, userId, scene);
+        return reviewConverter.toEntity(po);
     }
 
     @Override
     public ReviewTaskEntity findById(Long id) {
-        try {
-            ReviewTaskPO po = reviewMapper.findById(id);
-            return reviewConverter.toEntity(po);
-        } catch (Exception e) {
-            log.error("[ReviewRepositoryImpl findById] 按主键查询异常, id={}", id, e);
-            return null;
-        }
+        ReviewTaskPO po = reviewMapper.findById(id);
+        return reviewConverter.toEntity(po);
     }
 
     @Override
@@ -57,9 +46,9 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         try {
             ReviewTaskPO po = reviewConverter.toPO(entity);
             if (po == null) {
-                log.info("[ReviewRepositoryImpl save] 转换PO为空, materialId={}, userId={}, scene={}",
+                log.error("[ReviewRepositoryImpl save] 转换PO为空, materialId={}, userId={}, scene={}",
                         entity.getMaterialId(), entity.getUserId(), entity.getScene());
-                return;
+                throw new IllegalArgumentException("实体转换失败");
             }
             if (po.getId() == null) {
                 // 新增
