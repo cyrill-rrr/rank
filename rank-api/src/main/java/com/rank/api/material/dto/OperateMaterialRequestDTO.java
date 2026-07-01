@@ -1,12 +1,16 @@
-package com.rank.application.material.command;
+package com.rank.api.material.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
- * 材料操作Command
+ * 材料操作请求DTO
  */
 @Data
-public class MaterialCommand {
+public class OperateMaterialRequestDTO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * 材料场景：MEDICAL_BEAUTY_DOCTOR / ORAL_DOCTOR
